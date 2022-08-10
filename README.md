@@ -6,6 +6,8 @@
 * [Examples](#example)
 
 <a name="intro"></a>
+Introduction
+-------------------------
 ChemNLP is a software-package to process chemical information from the scientific literature.
 
 <a name="install"></a>

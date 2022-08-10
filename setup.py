@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="atombench",  
-    version="2022.7.15",
+    name="chemnlp",  
+    version="2022.8.10",
     author="Kamal Choudhary",
     author_email="kamal.choudhary@nist.gov",
     description="atombench",

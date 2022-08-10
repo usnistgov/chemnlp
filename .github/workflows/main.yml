@@ -32,6 +32,7 @@ jobs:
       run: |
        
         pip install flake8 pytest pycodestyle pydocstyle codecov pytest-cov coverage 
+        cde data download
         echo 'PIP freeze'
         pip freeze
         coverage run -m pytest

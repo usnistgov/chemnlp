@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="chemnlp",  
-    version="2022.8.10",
+    version="2022.8.11",
     author="Kamal Choudhary",
     author_email="kamal.choudhary@nist.gov",
-    description="atombench",
+    description="chemnlp",
     install_requires=[
         "numpy>=1.22.0",
         "scipy>=1.6.3",

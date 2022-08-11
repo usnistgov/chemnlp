@@ -24,7 +24,7 @@ def keywords():
                         'vth', 'electrostatic doping', 'defect passivation', 'metal organic framework',
                         'moire superlattice', 'bilayer', 'trilayer', 'monolayer', 'mechanical exfoliation',
                         'trion', 'van der waals', 'wearable', 'graphene', 'threshold voltage',
-                        'covalent organic framework', 'polariton', 'valley degree of freedom',]
+                        'covalent organic framework', 'polariton', 'valley degree of freedom'],
           'photocatalystMaterials': ['charge transfer', 'inorganic coordination complex', 'transition metal',
                                     'co2 reduction', 'water splitting', 'n2 fixation', 'charge separation',
                                     ]

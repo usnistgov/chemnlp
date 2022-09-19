@@ -62,3 +62,5 @@ run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 Using the webapp
 ---------
 The webapp is available at: https://jarvis.nist.gov/jarvischemnlp
+
+![JARVIS-ChemNLP](https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/PTable.PNG)

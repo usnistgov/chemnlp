@@ -1,16 +1,9 @@
+"""Module to perform tsne given csv file."""
 import matplotlib.pyplot as plt
-import matplotlib.colors
-import matplotlib.cm as cm
-import pandas as pd
-import numpy as np
-import os
-import requests
 
-# import feedparser
-import time
-import json
+import pandas as pd
+
 from tqdm import tqdm
-from jarvis.db.figshare import data
 from collections import Counter
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
@@ -22,6 +15,15 @@ import nltk
 
 nltk.download("punkt")
 # samples=len(df)
+# import numpy as np
+# import os
+# from jarvis.db.figshare import data
+# import requests
+# import matplotlib.colors
+# import matplotlib.cm as cm
+# import feedparser
+# import time
+# import json
 
 
 def abstract2df(df=None, idx=None, text=""):
@@ -85,7 +87,7 @@ def reduce_dim(matrix, dims):
     X = svd.fit_transform(matrix)  # matrix.shape = (n_samples, n_features)
     toc = time()
     print(
-        "Embeddings reduced from %d to %d dimensions through TruncatedSVD. (Time elapsed: %.2f s)"
+        "Embeddings reduced from %d to %d using TruncatedSVD. (Time: %.2f s)"
         % (matrix.shape[1], dims, (toc - tic))
     )
     return X
@@ -105,7 +107,7 @@ def TSNE2D(X):
     ).fit_transform(X)
     toc = time()
     print(
-        "Embeddings reduced to 2 dimensions through TSNE. (Time elapsed: %.2f s)"
+        "Embeddings reduced to 2 dimensions through TSNE. (Time: %.2f s)"
         % (toc - tic)
     )
     return X_embedded
@@ -158,7 +160,7 @@ def tsne(df=None, category_key="term", text="title", filename=None, ndim=128):
     X = reduce_dim(matrix, ndim)
     X_embedded = TSNE2D(X)
 
-    #%matplotlib inline
+    # %matplotlib inline
     plt.rcParams.update({"font.size": 14})
     plt.figure(figsize=(8, 8))
     X = X_embedded

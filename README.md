@@ -4,6 +4,7 @@
 * [Introduction](#intro)
 * [Installation](#install)
 * [Examples](#example)
+* [Web-app](#webapp)
 
 <a name="intro"></a>
 Introduction
@@ -55,3 +56,9 @@ Examples
 ```
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
+
+
+<a name="webapp"></a>
+Using the webapp
+---------
+The webapp is available at: https://jarvis.nist.gov/jarvischemnlp

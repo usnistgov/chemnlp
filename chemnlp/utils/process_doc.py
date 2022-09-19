@@ -22,7 +22,7 @@ class ProcessDoc(object):
             try:
                 form = Composition.from_string(j.text)
                 wt = float(form.weight)
-            except:
+            except Exception:
                 pass
             if (
                 wt != "na"

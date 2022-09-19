@@ -1,14 +1,8 @@
-# BERT
-from jarvis.db.figshare import data
+"""Module to perform BERT classification."""
 from transformers import AdamW, get_linear_schedule_with_warmup
 import random
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 import torch
-from tqdm import tqdm
-
-# from tqdm.notebook import tqdm
 from tqdm import tqdm
 import pandas as pd
 from transformers import BertTokenizer
@@ -17,11 +11,13 @@ from transformers import BertForSequenceClassification
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-import os
-import pandas as pd
-
-# from torchmetrics import Accuracy
 from sklearn.metrics import accuracy_score
+
+# from tqdm import tqdm
+# from tqdm.notebook import tqdm
+# from torchmetrics import Accuracy
+# from jarvis.db.figshare import data
+# import matplotlib.pyplot as plt
 
 # df = df_cond_mat_b[0:2000]
 # key = "term"
@@ -30,7 +26,7 @@ from sklearn.metrics import accuracy_score
 # epochs = 5
 
 # os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-#!export CUDA_LAUNCH_BLOCKING="1"
+# !export CUDA_LAUNCH_BLOCKING="1"
 
 
 def train_classifier(
@@ -46,6 +42,7 @@ def train_classifier(
     lr=0.001,
     model_save_frequency=3,
 ):
+    """Train a PyTorch BERT classifier."""
     label_dict = {}
     possible_labels = df[key].unique()
     for index, possible_label in enumerate(possible_labels):
@@ -251,8 +248,6 @@ def train_classifier(
 
 
 if __name__ == "__main__":
-    df = pd.read_csv(
-        "/home/knc6/Software/chemdata/chemnlp/chemnlp/clustering/id_term_title.csv"
-    )
+    df = pd.read_csv("cond_mat.csv")
 
     train_classifier(df=df)

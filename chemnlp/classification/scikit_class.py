@@ -1,3 +1,4 @@
+"""Module for classification tasks."""
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2
@@ -10,11 +11,39 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingClassifier
+
+# from sklearn.ensemble import GradientBoostingClassifier
 import seaborn as sns
 from jarvis.db.figshare import data
 import pickle
 from sklearn.metrics import accuracy_score
+
+
+def generate_data(n_entries=None, filename="cond_mat.csv"):
+    """Generate cond-mat dataset."""
+    d = data("arXiv")
+    df = pd.DataFrame(d)
+    cond_mat_topics = [
+        "cond-mat.mtrl-sci",
+        "cond-mat.mes-hall",
+        "cond-mat.str-el",
+        "cond-mat.stat-mech",
+        "cond-mat.supr-con",
+        "cond-mat.soft",
+        "cond-mat.quant-gas",
+        "cond-mat.other",
+        "cond-mat.dis-nn",
+    ]
+    df_cond_mat = df[
+        df["categories"].apply(
+            lambda x: "cond-mat" in x and x in cond_mat_topics
+        )
+    ]
+    if n_entries is not None:
+        df_cond_mat = df_cond_mat[0:n_entries]
+    dff = df_cond_mat[["id", "title", "abstract", "categories"]]
+    dff["title_abstract"] = dff["title"] + " " + df["abstract"]
+    dff.to_csv(filename)
 
 
 def scikit_classify(
@@ -28,6 +57,7 @@ def scikit_classify(
     print_common=False,
     model_selection=False,
 ):
+    """Classifcy data using scikit-learn library algos."""
     print(df)
     print(df[key].value_counts())
     df["category_id"] = df[key].factorize()[0]
@@ -36,7 +66,7 @@ def scikit_classify(
     )
 
     category_to_id = dict(category_id_df.values)
-    id_to_category = dict(category_id_df[["category_id", key]].values)
+    # id_to_category = dict(category_id_df[["category_id", key]].values)
 
     print(df.head())
 
@@ -46,20 +76,25 @@ def scikit_classify(
         min_df=min_df,
         # minimum numbers of documents a word must be present in to be kept
         norm="l2",
-        # norm is set to l2, to ensure all our feature vectors have a euclidian norm of 1
+        # norm is set to l2, to ensure all our feature
+        # vectors have a euclidian norm of 1
         encoding="latin-1",  # utf-8 possible
         ngram_range=ngram_range,
         # (1, 2) to indicate that we want to consider both unigrams and bigrams
         stop_words="english",
-        # remove common pronouns ("a", "the", ...) to reduce the number of noisy features
+        # remove common pronouns ("a", "the", ...)
+        # to reduce the number of noisy features
     )
 
     # Title features:
-    title_features = title_tfidf.fit_transform(df[value]).toarray()  # title
+    title_features = title_tfidf.fit_transform(
+        df[value]
+    )  # .toarray()  # title
     title_labels = df.category_id  # categories (cond-mat)
     print(
         "title_features.shape", title_features.shape
-    )  # titles represented by features, representing tf-idf score for different unigrams and bigrams
+    )  # titles represented by features,
+    # representing tf-idf score for different unigrams and bigrams
 
     if print_common:
         N = 2  # number of correlated items to display
@@ -85,12 +120,13 @@ def scikit_classify(
     if model_selection:
         models = [
             # GradientBoostingClassifier(),
-            RandomForestClassifier(),  # n_estimators=200, max_depth=3, random_state=0),
+            RandomForestClassifier(),
+            # n_estimators=200, max_depth=3, random_state=0),
             LinearSVC(),
             MultinomialNB(),
-            LogisticRegression(
-                random_state=0
-            ),  # try: multi_class='multinomial', solver='lbfgs'...same accuracy actually
+            LogisticRegression(random_state=0),
+            # try: multi_class='multinomial',
+            # solver='lbfgs'...same accuracy actually
         ]
 
         cv_df = pd.DataFrame(index=range(CV * len(models)))
@@ -222,34 +258,6 @@ def scikit_classify(
 
 
 if __name__ == "__main__":
-    df = pd.read_csv(
-        "/home/knc6/Software/chemdata/chemnlp/chemnlp/clustering/id_term_title.csv"
-    )
-    scikit_classify(df=df, key="term", value="title", CV=3)
-    """
-
-    arxiv = data("arXiv")
-    df = pd.DataFrame(arxiv)
-    cond_mat_topics = [
-        "cond-mat.mtrl-sci",
-        "cond-mat.mes-hall",
-        "cond-mat.str-el",
-        "cond-mat.stat-mech",
-        "cond-mat.supr-con",
-        "cond-mat.soft",
-        "cond-mat.dis-nn",
-    ]
-    df_cond_mat = df[
-        df["categories"].apply(
-            lambda x: "cond-mat" in x and x in cond_mat_topics
-        )
-    ]
-    df_cond_mat_forScikit = df_cond_mat[
-        ["id", "categories", "title", "abstract"]
-    ].reset_index(drop=True)
-    # df_cond_mat_forScikit.rename(columns = {'categories': 'term',
-    #                                     'title': 'title'})
-    df = df_cond_mat_forScikit[0:10000]
-    key = "categories"
-    scikit_classify(df=df, key=key, value="title", CV=3)
-    """
+    # python generate_data.py
+    df = pd.read_csv("cond_mat.csv")
+    scikit_classify(df=df, key="categories", value="title_abstract")

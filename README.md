@@ -4,6 +4,8 @@
 * [Introduction](#intro)
 * [Installation](#install)
 * [Examples](#example)
+* [Web-app](#webapp)
+* [Reference](#reference)
 
 <a name="intro"></a>
 Introduction
@@ -55,3 +57,18 @@ Examples
 ```
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
+
+
+<a name="webapp"></a>
+Using the webapp
+---------
+The webapp is available at: https://jarvis.nist.gov/jarvischemnlp
+
+![JARVIS-ChemNLP](https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/PTable.PNG)
+
+<a name="reference"></a>
+Reference
+---------
+
+
+[ChemNLP: A Natural Language Processing based Library for Materials Chemistry Text Data](https://arxiv.org/abs/2209.08203)

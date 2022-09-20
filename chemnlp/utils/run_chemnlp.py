@@ -1,5 +1,5 @@
 import argparse
-import os
+# import os
 from chemnlp.utils.process_doc import ProcessDoc
 import sys
 

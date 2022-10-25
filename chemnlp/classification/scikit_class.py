@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 import seaborn as sns
 from jarvis.db.figshare import data
 import pickle
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
 def generate_data(n_entries=None, filename="cond_mat.csv"):
@@ -188,8 +188,14 @@ def scikit_classify(
     y_pred = model.predict(X_test)
     f = open("accuracy_logistic", "w")
     f.write(str(accuracy_score(y_test, y_pred)))
+    f.write(str(precision_score(y_test, y_pred)))
+    f.write(str(recall_score(y_test, y_pred)))
+    f.write(str(f1_score(y_test, y_pred)))
     f.close()
     print("Logistic", accuracy_score(y_test, y_pred))
+    print("Logistic", precision_score(y_test, y_pred))
+    print("Logistic", recall_score(y_test, y_pred))
+    print("Logistic", f1_score(y_test, y_pred))
     pickle.dump(model, open("log.pk", "wb"))
 
     plt.rcParams.update({"font.size": 20})
@@ -231,6 +237,9 @@ def scikit_classify(
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     print("SVC", accuracy_score(y_test, y_pred))
+    print("SVC", precision_score(y_test, y_pred))
+    print("SVC", recall_score(y_test, y_pred))
+    print("SVC", f1_score(y_test, y_pred))
     pickle.dump(model, open("svc.pk", "wb"))
 
     plt.rcParams.update({"font.size": 20})
@@ -254,6 +263,9 @@ def scikit_classify(
     plt.close()
     f = open("accuracy_svc", "w")
     f.write(str(accuracy_score(y_test, y_pred)))
+    f.write(str(precision_score(y_test, y_pred)))
+    f.write(str(recall_score(y_test, y_pred)))
+    f.write(str(f1_score(y_test, y_pred)))
     f.close()
 
 

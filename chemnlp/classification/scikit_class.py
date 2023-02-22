@@ -15,11 +15,12 @@ from sklearn.model_selection import train_test_split
 # from sklearn.ensemble import GradientBoostingClassifier
 import seaborn as sns
 from jarvis.db.figshare import data
+from jarvis.db.jsonutils import dumpjson
 import pickle
 from sklearn.metrics import accuracy_score
 
 
-def generate_data(n_entries=None, filename="cond_mat.csv"):
+def generate_data(n_entries=None, nentry_each=None, filename="cond_mat.csv"):
     """Generate cond-mat dataset."""
     d = data("arXiv")
     df = pd.DataFrame(d)
@@ -41,9 +42,153 @@ def generate_data(n_entries=None, filename="cond_mat.csv"):
     ]
     if n_entries is not None:
         df_cond_mat = df_cond_mat[0:n_entries]
+    if nentry_each is not None:
+        x = []
+        for i in cond_mat_topics:
+            x.extend(
+                df_cond_mat[df_cond_mat["categories"] == i][0:nentry_each][
+                    "id"
+                ].values
+            )
+        df_cond_mat = df_cond_mat[df_cond_mat["id"].isin(x)]
+
     dff = df_cond_mat[["id", "title", "abstract", "categories"]]
     dff["title_abstract"] = dff["title"] + " " + df["abstract"]
+    dff = dff.sample(frac=1, replace=True, random_state=1)
     dff.to_csv(filename)
+    # print(len(set(dff.categories)))
+
+
+def sk_class(
+    csv_path=None,
+    key="categories",
+    value="title_abstract",
+    test_size=0.2,
+    min_df=5,
+    ngram_range=[1, 2],
+    print_common=False,
+    model=None,
+    categorize=True,  # False is buggy, need to check
+    shuffle=False,
+):
+
+    """Classifcy data using scikit-learn library algos."""
+    df = pd.read_csv(csv_path, dtype="str")
+    # df=pd.read_csv(csv_path,dtype={'id':'str'})
+    if categorize:
+        df["category_id"] = df[key].factorize()[0]
+        category_id_df = (
+            df[[key, "category_id"]].sort_values("category_id")
+            # df[[key, "category_id"]].drop_duplicates().sort_values("category_id")
+        )
+
+        category_to_id = dict(category_id_df.values)
+        print("category_to_id", category_to_id)
+    print(df)
+    print(df[key].value_counts())
+    title_tfidf = TfidfVectorizer(
+        sublinear_tf=True,
+        # logarithmic form for frequency
+        min_df=min_df,
+        # minimum numbers of documents a word must be present in to be kept
+        norm="l2",
+        # norm is set to l2, to ensure all our feature
+        # vectors have a euclidian norm of 1
+        encoding="latin-1",  # utf-8 possible
+        ngram_range=ngram_range,
+        # (1, 2) to indicate that we want to consider both unigrams and bigrams
+        stop_words="english",
+        # remove common pronouns ("a", "the", ...)
+        # to reduce the number of noisy features
+    )
+    # Title features:
+    title_features = title_tfidf.fit_transform(
+        df[value]
+    )  # .toarray()  # title
+    if categorize:
+        title_labels = df.category_id  # categories (cond-mat)
+    else:
+        title_labels = df[key]  # categories (cond-mat)
+    # title_labels = df.category_id  # categories (cond-mat)
+    print(
+        "title_features.shape", title_features.shape
+    )  # titles represented by features,
+    # representing tf-idf score for different unigrams and bigrams
+    if model is None:
+        model = LogisticRegression(random_state=0)  # LinearSVC()
+    (
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        indices_train,
+        indices_test,
+    ) = train_test_split(
+        title_features,
+        title_labels,
+        df.index,
+        test_size=test_size,
+        random_state=0,
+        shuffle=shuffle,
+    )
+    if not categorize:
+        category_to_id = list(set(df[key].values))
+    id_to_category = dict((v, k) for k, v in category_to_id.items())
+    info = {}
+    train_info = {}
+    test_info = {}
+    for i, j in zip(df.id[indices_train], y_train):
+        train_info[i] = id_to_category[int(j)]  # j
+    for i, j in zip(df.id[indices_test], y_test):
+        test_info[i] = id_to_category[int(j)]  # j
+    info["train"] = train_info
+    info["test"] = test_info
+    dumpjson(data=info, filename="arXiv_categories.json")
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    f = open("pred_test.csv", "w")
+    # f.write(str(accuracy_score(y_test, y_pred)))
+    # f.close()
+    line = "id,target,prediction\n"
+    f.write(line)
+    # pickle.dump(model, open("log.pk", "wb"))
+    for i, j, k in zip(df.id[indices_test], y_test, y_pred):
+        # print(i,j,k)
+        line = (
+            str(i)
+            + ","
+            + str(id_to_category[int(j)])
+            + ","
+            + str(id_to_category[int(k)])
+            + "\n"
+        )
+        f.write(line)
+    f.close()
+    # print ('indices_train',df.id[indices_train].astype(str),len(indices_train))
+    # print('indices_test',df.id[indices_test].astype(str),len(indices_test))
+    print("Logistic", accuracy_score(y_test, y_pred))
+    plt.rcParams.update({"font.size": 20})
+    conf_mat = confusion_matrix(y_test, y_pred)  # ,labels=category_to_id)
+    fig, ax = plt.subplots(figsize=(16, 16))
+    # print('category_id_df[key].values',category_id_df[key].values)
+    sns.heatmap(
+        conf_mat / conf_mat.sum(axis=1)[:, np.newaxis],
+        annot=True,
+        # fmt="d",
+        fmt=".1%",
+        cbar=False,
+        square=True,
+        cmap=sns.diverging_palette(20, 220, n=200),
+        # xticklabels=category_id_df[k].values,
+        # yticklabels=category_id_df[k].values,
+        xticklabels=category_to_id,
+        yticklabels=category_to_id,
+    )
+    plt.ylabel("Actual")
+    plt.xlabel("Predicted")
+    plt.tight_layout()
+    plt.savefig("conf_log.pdf")
+    plt.close()
 
 
 def scikit_classify(
@@ -259,5 +404,10 @@ def scikit_classify(
 
 if __name__ == "__main__":
     # python generate_data.py
-    df = pd.read_csv("cond_mat.csv")
-    scikit_classify(df=df, key="categories", value="title_abstract")
+    # generate_data()
+    # sk_class(csv_path='cond_mat.csv')
+    sk_class(
+        csv_path="/home/knc6/Software/chemdata/chemnlp/chemnlp/sample_data/cond_mat.csv"
+    )
+    # df = pd.read_csv("cond_mat.csv")
+    # scikit_classify(df=df, key="categories", value="title_abstract")

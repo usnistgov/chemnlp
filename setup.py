@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     name="chemnlp",
     version="2023.3.4",
-    author="Kamal Choudhary, Mathew Kelley",
+    author="Kamal Choudhary",
     author_email="kamal.choudhary@nist.gov",
     description="chemnlp",
     install_requires=[

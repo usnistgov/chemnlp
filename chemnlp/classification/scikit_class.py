@@ -11,6 +11,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+import argparse
+import sys
 
 # from sklearn.ensemble import GradientBoostingClassifier
 import seaborn as sns
@@ -18,6 +20,41 @@ from jarvis.db.figshare import data
 from jarvis.db.jsonutils import dumpjson
 import pickle
 from sklearn.metrics import accuracy_score
+
+parser = argparse.ArgumentParser(description="ChemNLP package.")
+parser.add_argument(
+    "--csv_path",
+    default="filename.csv",
+    help="Path for comma separated file.",
+)
+parser.add_argument(
+    "--test_ratio",
+    default=0.2,
+    help="Test split ratio e.g. 0.2",
+)
+
+parser.add_argument(
+    "--key_column",
+    default="categories",
+    help="Column name for classes in csv file",
+)
+
+parser.add_argument(
+    "--value_column",
+    default="title_abstract",
+    help="Column name for text in csv file",
+)
+
+parser.add_argument(
+    "--min_df",
+    default=5,
+    help="Minimum numbers of documents a word must be present in to be kept",
+)
+parser.add_argument(
+    "--shuffle",
+    default=False,
+    help="Whether or not shuffle the rows in csv before splitting",
+)
 
 
 def generate_data(n_entries=None, nentry_each=None, filename="cond_mat.csv"):
@@ -71,7 +108,6 @@ def sk_class(
     categorize=True,  # False is buggy, need to check
     shuffle=False,
 ):
-
     """Classifcy data using scikit-learn library algos."""
     df = pd.read_csv(csv_path, dtype="str")
     # df=pd.read_csv(csv_path,dtype={'id':'str'})
@@ -79,7 +115,8 @@ def sk_class(
         df["category_id"] = df[key].factorize()[0]
         category_id_df = (
             df[[key, "category_id"]].sort_values("category_id")
-            # df[[key, "category_id"]].drop_duplicates().sort_values("category_id")
+            # df[[key, "category_id"]].drop_duplicates()
+            # .sort_values("category_id")
         )
 
         category_to_id = dict(category_id_df.values)
@@ -164,9 +201,10 @@ def sk_class(
         )
         f.write(line)
     f.close()
-    # print ('indices_train',df.id[indices_train].astype(str),len(indices_train))
+    # print ('indices_train',df.id[indices_train]
+    # .astype(str),len(indices_train))
     # print('indices_test',df.id[indices_test].astype(str),len(indices_test))
-    print("Logistic", accuracy_score(y_test, y_pred))
+    print("Logistic model accuracy", accuracy_score(y_test, y_pred))
     plt.rcParams.update({"font.size": 20})
     conf_mat = confusion_matrix(y_test, y_pred)  # ,labels=category_to_id)
     fig, ax = plt.subplots(figsize=(16, 16))
@@ -406,8 +444,21 @@ if __name__ == "__main__":
     # python generate_data.py
     # generate_data()
     # sk_class(csv_path='cond_mat.csv')
+    args = parser.parse_args(sys.argv[1:])
+    csv_path = args.csv_path
+    test_ratio = float(args.test_ratio)
+    key_column = args.key_column
+    value_column = args.value_column
+    min_df = int(args.min_df)
+    shuffle = args.shuffle
+
     sk_class(
-        csv_path="/home/knc6/Software/chemdata/chemnlp/chemnlp/sample_data/cond_mat.csv"
+        csv_path=csv_path,
+        test_size=test_ratio,
+        key=key_column,
+        value=value_column,
+        min_df=min_df,
+        shuffle=shuffle,
     )
     # df = pd.read_csv("cond_mat.csv")
     # scikit_classify(df=df, key="categories", value="title_abstract")

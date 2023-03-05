@@ -1,3 +1,5 @@
+[![name](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/ChemNLP_Example.ipynb)
+
 # ChemNLP
 
 # Table of Contents
@@ -58,6 +60,11 @@ Examples
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
 
+#### Text classification example with Logistic regression
+
+```
+python chemnlp/classification/scikit_class.py --csv_path chemnlp/sample_data/cond_mat_small.csv
+```
 
 <a name="webapp"></a>
 Using the webapp

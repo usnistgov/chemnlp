@@ -60,7 +60,7 @@ Examples
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
 
-#### Text classification example with Logistic regression
+#### Text classification example
 
 ```
 python chemnlp/classification/scikit_class.py --csv_path chemnlp/sample_data/cond_mat_small.csv

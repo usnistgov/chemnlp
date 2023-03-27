@@ -31,8 +31,8 @@ from sklearn.metrics import accuracy_score
 
 def train_classifier(
     df=None,
-    key="term",
-    value="title",
+    key="categories",
+    value="title_abstract",
     batch_size=32,
     epochs=5,
     seed_val=17,
@@ -248,6 +248,8 @@ def train_classifier(
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("cond_mat.csv")
-
-    train_classifier(df=df)
+    #df = pd.read_csv("cond_mat.csv")
+    df = pd.read_csv("/wrk/knc6/AtomNLP/Summarize/cond_mat.csv")
+    #df = pd.read_csv("/wrk/knc6/AtomNLP/chemnlp/chemnlp/sample_data/cond_mat_small.csv")
+    
+    train_classifier(df=df,max_length=8)

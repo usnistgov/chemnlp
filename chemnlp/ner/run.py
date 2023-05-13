@@ -7,6 +7,9 @@ from tokenizers.normalizers import BertNormalizer
 from simpletransformers.ner import NERModel
 import re, os
 import time
+from jarvis.db.jsonutils import dumpjson
+from collections import defaultdict
+
 
 def parse_file(f_name):
     f = open(f_name, "r")
@@ -39,148 +42,188 @@ def get_matscholar_data():
     test_X, test_y = parse_file(os.path.join(data_dir, "test.txt"))
     return train_X, train_y, val_X, val_y, test_X, test_y
 
-t1=time.time()
-f = open(os.path.join("/wrk/knc6/AtomNLP/MatSciBERT/vocab_mappings.txt"), "r")
-mappings = f.read().strip().split("\n")
-f.close()
 
-mappings = {m[0]: m[2:] for m in mappings}
+def generate_dataset():
+    f = open(os.path.join("vocab_mappings.txt"), "r")
+    mappings = f.read().strip().split("\n")
+    f.close()
 
-norm = BertNormalizer(
-    lowercase=False,
-    strip_accents=True,
-    clean_text=True,
-    handle_chinese_chars=True,
-)
+    mappings = {m[0]: m[2:] for m in mappings}
+
+    norm = BertNormalizer(
+        lowercase=False,
+        strip_accents=True,
+        clean_text=True,
+        handle_chinese_chars=True,
+    )
+
+    def normalize(text):
+        text = [norm.normalize_str(s) for s in text.split("\n")]
+        out = []
+        for s in text:
+            norm_s = ""
+            for c in s:
+                norm_s += mappings.get(c, " ")
+            out.append(norm_s)
+        return "\n".join(out)
+
+    data = get_matscholar_data()
+
+    norm_data = []
+    for split in data:
+        norm_split = []
+        for s in split:
+            norm_split.append(normalize("\n".join(s)).split("\n"))
+        norm_data.append(norm_split)
+
+    # f=open('train.txt','r')
+    # lines=f.read().splitlines()
+    # f.close()
+    # for ii,i in enumerate(lines):
+    # tmp=i.split()
+    # if len(tmp)==2:# and tmp[1] in proj:
+    #     train_data.append([ii,tmp[0],tmp[1]])
+    #     #train_data.append([ii,tmp[0],proj[tmp[1]]])
+    train_data = []
+    count = 0
+    for i, j in zip(norm_data[0], norm_data[1]):
+        count += 1
+        for m, n in zip(i, j):
+            train_data.append([count, m, n])
+    train_df = pd.DataFrame(
+        train_data, columns=["sentence_id", "words", "labels"]
+    )
+    print("train_df", train_df)
+    # f=open('test.txt','r')
+    # lines=f.read().splitlines()
+    # f.close()
+    # eval_data=[]
+    # for ii,i in enumerate(lines):
+    # tmp=i.split()
+    # if len(tmp)==2:# and tmp[1] in proj:
+    #     eval_data.append([ii,tmp[0],tmp[1]])
+    #     #eval_data.append([ii,tmp[0],proj[tmp[1]]])
+    eval_data = []
+    count = 0
+    for i, j in zip(norm_data[2], norm_data[3]):
+        count += 1
+        for m, n in zip(i, j):
+            eval_data.append([count, m, n])
+    eval_df = pd.DataFrame(
+        eval_data, columns=["sentence_id", "words", "labels"]
+    )
+    print("eval_df", eval_df)
+    # Create a NERModel
+    # https://github.com/ThilinaRajapakse/simpletransformers/blob/ce30db2260aa7b6e20c6fed8bee3ee6c6e5972be/tests/test_named_entity_recognition.py#L4
+
+    df = pd.concat([train_df, eval_df])
+    df["idd"] = df.index
+    df["id"] = df["idd"].apply(lambda x: "ms-" + str(x))
+    mem = []
+    for i, ii in df.iterrows():
+        info = {}
+        info["id"] = ii["id"]
+        info["words"] = ii["words"]
+        info["sentence_id"] = ii["sentence_id"]
+        info["labels"] = ii["labels"]
+        mem.append(info)
+
+    dumpjson(data=mem, filename="mat_scholar_ner.json")
+    train = {}
+    test = {}
+    for ii, i in enumerate(mem):
+        if ii < 110522:
+            train[i["id"]] = i["labels"]
+        else:
+            test[i["id"]] = i["labels"]
+    m = {}
+    m["train"] = train
+    m["test"] = test
+    dumpjson(data=m, filename="mat_scholar_ner_labels.json")
+    return train_df, eval_df
+
+def train_model(custom_labels=[], train_df=[], eval_df=[]):
+    if not custom_labels:
+        custom_labels = [
+            "O",
+            "B-MAT",
+            "I-MAT",
+            "B-PRO",
+            "I-PRO",
+            "B-SMT",
+            "I-SMT",
+            "B-CMT",
+            "I-CMT",
+            "B-DSC",
+            "I-DSC",
+            "B-SPL",
+            "I-SPL",
+            "B-APL",
+            "I-APL",
+        ]
+    model = NERModel(
+        # "bert",
+        # "bert-base-cased",
+        # "bert",
+        # "bert-base-uncased",
+        # "roberta",
+        # "roberta-base",
+        # "bigbird",
+        # "google/bigbird-roberta-base",
+        # "longformer",
+        # "allenai/longformer-base-4096",
+        # "xlm",
+        # "xlm-mlm-17-1280",
+        # "albert",
+        # "albert-base-v1",
+        "xlnet",
+        "xlnet-base-cased",
+        # "layoutlmv2",
+        # "layoutlmv2-base-cased",
+        labels=custom_labels,
+        args={
+            "max_seq_length": 128,
+            "overwrite_output_dir": True,
+            "reprocess_input_data": True,
+            "num_train_epochs": 3,
+            "train_batch_size": 64,
+            "manual_seed": 123,
+            # "learning_rate":6e-5,
+            "learning_rate": 5e-5,
+        },
+    )
+    print("args=", model.args)
+    # # Train the model
+    model.train_model(train_df, eval_data=eval_df.values)
+    #model.train_model(train_df, eval_data=eval_data)
+    print("args=", model.args)
+    # # Evaluate the model
+    result, model_outputs, predictions = model.eval_model(eval_df)
+    print("result", result)
+
+    # Predictions on arbitary text strings
+    # sentences = ["Some arbitary sentence", "Simple Transformers sentence"]
+    # predictions, raw_outputs = model.predict(sentences)
+
+    # print(predictions)
+    #print('model_outputs',model_outputs)
+    #print('predictions',predictions)
+    print ('shape',len(eval_df),np.concatenate(predictions).shape)
+    return model,result, model_outputs, predictions
+    # More detailed preditctions
+    for n, (preds, outs) in enumerate(zip(predictions, model_outputs)):
+        #print("\n___________________________")
+        #print("Sentence: ", sentences[n])
+        for pred, out in zip(preds, outs):
+            key = list(pred.keys())[0]
+            new_out = out[key]
+            preds = list(softmax(np.mean(new_out, axis=0)))
+            print(key, pred[key], preds[np.argmax(preds)], preds)
 
 
-def normalize(text):
-    text = [norm.normalize_str(s) for s in text.split("\n")]
-    out = []
-    for s in text:
-        norm_s = ""
-        for c in s:
-            norm_s += mappings.get(c, " ")
-        out.append(norm_s)
-    return "\n".join(out)
-
-
-data = get_matscholar_data()
-
-norm_data = []
-for split in data:
-    norm_split = []
-    for s in split:
-        norm_split.append(normalize("\n".join(s)).split("\n"))
-    norm_data.append(norm_split)
-
-
-custom_labels = [
-    "O",
-    "B-MAT",
-    "I-MAT",
-    "B-PRO",
-    "I-PRO",
-    "B-SMT",
-    "I-SMT",
-    "B-CMT",
-    "I-CMT",
-    "B-DSC",
-    "I-DSC",
-    "B-SPL",
-    "I-SPL",
-    "B-APL",
-    "I-APL",
-]
-# f=open('train.txt','r')
-# lines=f.read().splitlines()
-# f.close()
-# for ii,i in enumerate(lines):
-# tmp=i.split()
-# if len(tmp)==2:# and tmp[1] in proj:
-#     train_data.append([ii,tmp[0],tmp[1]])
-#     #train_data.append([ii,tmp[0],proj[tmp[1]]])
-train_data = []
-count = 0
-for i, j in zip(norm_data[0], norm_data[1]):
- count += 1
- for m,n in zip(i,j):
-    train_data.append([count, m, n])
-train_df = pd.DataFrame(train_data, columns=["sentence_id", "words", "labels"])
-print("train_df", train_df)
-# f=open('test.txt','r')
-# lines=f.read().splitlines()
-# f.close()
-# eval_data=[]
-# for ii,i in enumerate(lines):
-# tmp=i.split()
-# if len(tmp)==2:# and tmp[1] in proj:
-#     eval_data.append([ii,tmp[0],tmp[1]])
-#     #eval_data.append([ii,tmp[0],proj[tmp[1]]])
-eval_data = []
-count = 0
-for i, j in zip(norm_data[2], norm_data[3]):
- count += 1
- for m,n in zip(i,j):
-    eval_data.append([count, m,n])
-eval_df = pd.DataFrame(eval_data, columns=["sentence_id", "words", "labels"])
-print("eval_df", eval_df)
-# Create a NERModel
-# https://github.com/ThilinaRajapakse/simpletransformers/blob/ce30db2260aa7b6e20c6fed8bee3ee6c6e5972be/tests/test_named_entity_recognition.py#L4
-model = NERModel(
-    #"bert",
-    #"bert-base-cased",
-    #"bert",
-    #"bert-base-uncased",
-    #"roberta",
-    #"roberta-base",
-    #"bigbird",
-    #"google/bigbird-roberta-base",
-    #"longformer",
-    #"allenai/longformer-base-4096",
-    #"xlm",
-    #"xlm-mlm-17-1280",
-    #"albert", 
-    #"albert-base-v1",
-    "xlnet",
-    "xlnet-base-cased",
-    #"layoutlmv2",
-    #"layoutlmv2-base-cased",
-    labels=custom_labels,
-    args={
-        "max_seq_length":128,
-        "overwrite_output_dir": True,
-        "reprocess_input_data": True,
-        "num_train_epochs": 50,
-        "train_batch_size":64,
-        "manual_seed": 123,
-        #"learning_rate":6e-5,
-        "learning_rate":5e-5,
-        
-    },
-)
-print('args=',model.args)
-# # Train the model
-model.train_model(train_df, eval_data =  eval_data)
-print('args=',model.args)
-# # Evaluate the model
-result, model_outputs, predictions = model.eval_model(eval_df)
-print("result", result)
-
-# Predictions on arbitary text strings
-sentences = ["Some arbitary sentence", "Simple Transformers sentence"]
-predictions, raw_outputs = model.predict(sentences)
-
-print(predictions)
-
-# More detailed preditctions
-for n, (preds, outs) in enumerate(zip(predictions, raw_outputs)):
-    print("\n___________________________")
-    print("Sentence: ", sentences[n])
-    for pred, out in zip(preds, outs):
-        key = list(pred.keys())[0]
-        new_out = out[key]
-        preds = list(softmax(np.mean(new_out, axis=0)))
-        print(key, pred[key], preds[np.argmax(preds)], preds)
-t2=time.time()
-print ('Time taken',t2-t1)
+if __name__ == "__main__":
+    t1 = time.time()
+    train_df,eval_df = generate_dataset()
+    result, model_outputs, predictions = train_model(train_df=train_df,eval_df=eval_df)
+    t2 = time.time()
+    print("Time taken", t2 - t1)

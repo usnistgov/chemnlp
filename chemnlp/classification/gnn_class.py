@@ -1,3 +1,4 @@
+# https://github.com/zshicode/GNN-for-text-classification
 import dgl
 from dgl.dataloading.pytorch import GraphDataLoader
 from dgl.data import DGLDataset

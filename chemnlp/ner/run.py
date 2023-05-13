@@ -7,8 +7,10 @@ from tokenizers.normalizers import BertNormalizer
 from simpletransformers.ner import NERModel
 import re, os
 import time
-from jarvis.db.jsonutils import dumpjson
+import pandas as pd
+from jarvis.db.jsonutils import dumpjson, loadjson
 from collections import defaultdict
+from sklearn.metrics import accuracy_score, f1_score
 
 
 def parse_file(f_name):
@@ -104,7 +106,7 @@ def generate_dataset():
     #     eval_data.append([ii,tmp[0],tmp[1]])
     #     #eval_data.append([ii,tmp[0],proj[tmp[1]]])
     eval_data = []
-    count = 0
+    # count = 0
     for i, j in zip(norm_data[2], norm_data[3]):
         count += 1
         for m, n in zip(i, j):
@@ -116,9 +118,11 @@ def generate_dataset():
     # Create a NERModel
     # https://github.com/ThilinaRajapakse/simpletransformers/blob/ce30db2260aa7b6e20c6fed8bee3ee6c6e5972be/tests/test_named_entity_recognition.py#L4
 
-    df = pd.concat([train_df, eval_df])
+    df = pd.concat([train_df, eval_df], ignore_index=True)
     df["idd"] = df.index
     df["id"] = df["idd"].apply(lambda x: "ms-" + str(x))
+    print("df")
+    print(df)
     mem = []
     for i, ii in df.iterrows():
         info = {}
@@ -140,7 +144,9 @@ def generate_dataset():
     m["train"] = train
     m["test"] = test
     dumpjson(data=m, filename="mat_scholar_ner_labels.json")
-    return train_df, eval_df
+    return df[0 : len(train_df)], df[len(eval_df) :]
+    # return train_df, eval_df
+
 
 def train_model(custom_labels=[], train_df=[], eval_df=[]):
     if not custom_labels:
@@ -185,8 +191,8 @@ def train_model(custom_labels=[], train_df=[], eval_df=[]):
             "max_seq_length": 128,
             "overwrite_output_dir": True,
             "reprocess_input_data": True,
-            "num_train_epochs": 3,
-            "train_batch_size": 64,
+            "num_train_epochs": 50,
+            "train_batch_size": 54,
             "manual_seed": 123,
             # "learning_rate":6e-5,
             "learning_rate": 5e-5,
@@ -195,7 +201,7 @@ def train_model(custom_labels=[], train_df=[], eval_df=[]):
     print("args=", model.args)
     # # Train the model
     model.train_model(train_df, eval_data=eval_df.values)
-    #model.train_model(train_df, eval_data=eval_data)
+    # model.train_model(train_df, eval_data=eval_data)
     print("args=", model.args)
     # # Evaluate the model
     result, model_outputs, predictions = model.eval_model(eval_df)
@@ -206,24 +212,48 @@ def train_model(custom_labels=[], train_df=[], eval_df=[]):
     # predictions, raw_outputs = model.predict(sentences)
 
     # print(predictions)
-    #print('model_outputs',model_outputs)
-    #print('predictions',predictions)
-    print ('shape',len(eval_df),np.concatenate(predictions).shape)
-    return model,result, model_outputs, predictions
-    # More detailed preditctions
-    for n, (preds, outs) in enumerate(zip(predictions, model_outputs)):
-        #print("\n___________________________")
-        #print("Sentence: ", sentences[n])
-        for pred, out in zip(preds, outs):
-            key = list(pred.keys())[0]
-            new_out = out[key]
-            preds = list(softmax(np.mean(new_out, axis=0)))
-            print(key, pred[key], preds[np.argmax(preds)], preds)
+    # print('model_outputs',model_outputs)
+    # print('predictions',predictions)
+    print("shape", len(eval_df), np.concatenate(predictions).shape)
+
+    pred = model.predict(eval_df["words"].values)[0]
+    # return model,result, pred
+    x = []
+    y = []
+    f = open("pred_result.csv", "w")
+    f.write("id,target,prediction\n")
+    for i, ii in (eval_df.reset_index()).iterrows():
+        # print (ii['id'],ii['labels'],list(pred[i][0].values())[0])
+        line = (
+            ii["id"]
+            + ","
+            + ii["labels"]
+            + ","
+            + list(pred[i][0].values())[0]
+            + "\n"
+        )
+        f.write(line)
+        x.append(ii["labels"])
+        y.append(list(pred[i][0].values())[0])
+    f.close()
+    print("Accuracy", accuracy_score(x, y))
+    print("F1", f1_score(x, y, average="micro"))
+
+    # n_train = 110521
+    # n_test = 12745
+
+    return model, result, pred
 
 
 if __name__ == "__main__":
     t1 = time.time()
-    train_df,eval_df = generate_dataset()
-    result, model_outputs, predictions = train_model(train_df=train_df,eval_df=eval_df)
+    train_df, eval_df = generate_dataset()
+    d = loadjson("mat_scholar_ner.json")
+    df = pd.DataFrame(d)
+    train_df = df[:110521]
+    eval_df = df[-12745:]
+    print(train_df)
+    print(eval_df)
+    model, result, pred = train_model(train_df=train_df, eval_df=eval_df)
     t2 = time.time()
     print("Time taken", t2 - t1)

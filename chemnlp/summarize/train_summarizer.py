@@ -21,22 +21,24 @@ import pandas as pd
 import pprint
 from jarvis.db.jsonutils import dumpjson
 from collections import defaultdict
+import time
+import evaluate
 
 tqdm.pandas()
 
 device = "cuda" if cuda.is_available() else "cpu"
-metric = load_metric("rouge")
+# metric = load_metric("rouge")
 
 
-def calc_rouge_scores(candidates, references):
-    result = metric.compute(
-        predictions=candidates, references=references, use_stemmer=True
-    )
-    result = {
-        key: round(value.mid.fmeasure * 100, 1)
-        for key, value in result.items()
-    }
-    return result
+# def calc_rouge_scores(candidates, references):
+#    result = metric.compute(
+#        predictions=candidates, references=references, use_stemmer=True
+#    )
+#    result = {
+#        key: round(value.mid.fmeasure * 100, 1)
+#        for key, value in result.items()
+#    }
+#    return result
 
 
 class CustomDataset(Dataset):
@@ -169,9 +171,10 @@ def main(
     shuffle=False,
     short_key="title",
     long_key="abstract",
+    # train_batch_size=128,
     train_batch_size=32,
     val_batch_size=16,
-    # train_epochs=1,
+    # train_epochs=10,
     train_epochs=10,
     val_epochs=1,
     lr=1e-4,
@@ -182,6 +185,7 @@ def main(
     tokenizer=None,
     model=None,
 ):
+    t1 = time.time()
     config = defaultdict()
     config["train_batch_size"] = train_batch_size
     config["val_batch_size"] = val_batch_size
@@ -234,13 +238,22 @@ def main(
     # training and the rest will be used for validation.
     if not train_dataset:
         df = pd.read_csv(csv_file)
+        df = df.drop_duplicates(subset="id")
+        n_train = int(len(df) * train_size)
+        n_val = len(df) - n_train
         df["text"] = df[short_key]
         df["ctext"] = df[long_key]
         df.ctext = "summarize: " + df.ctext
-        print(df.head())
-        train_dataset = df.sample(frac=train_size, random_state=SEED)
-        val_dataset = df.drop(train_dataset.index).reset_index(drop=True)
-        train_dataset = train_dataset.reset_index(drop=True)
+        train_dataset = df[:n_train].reset_index(
+            drop=True
+        )  # .sample(frac=train_size, random_state=SEED)
+        val_dataset = df[-n_val:].reset_index(
+            drop=True
+        )  # .drop(train_dataset.index).reset_index(drop=True)
+        print("n_train", n_train)
+        print("n_val", n_val)
+        print("train_dataset", train_dataset)
+        print("val_dataset", val_dataset)
     train_dataset.to_csv("train_dataset.csv")
     val_dataset.to_csv("val_dataset.csv")
     mem = []
@@ -337,24 +350,25 @@ def main(
     df = pd.read_csv("val_dataset.csv")
     df2 = pd.read_csv("predictions.csv")
     df2["text"] = df2["Actual Text"]
-    df3 = pd.merge(df, df2, on="text")
+    df3 = df2  # pd.merge(df, df2, on="text")
+    df3["id"] = df["id"]
     df3["target"] = df3["text"]
     df3["prediction"] = df3["Generated Text"]
     df4 = df3[["id", "target", "prediction"]]
 
     print("predictions")
     print(df4)
-    df4.to_csv("predictions_id_target_pred.csv", index=False)
-    # print("Generated", df["Generated Text"][0])
-    # print()
-    # print("Actual", df["Actual Text"][0])
-    print(
-        "Rougue score",
-        calc_rouge_scores(df4["target"], df4["prediction"])
-        # "Rougue score",
-        # calc_rouge_scores(df["Actual Text"], df["Generated Text"])
-    )
+    df4.to_csv("AI-TextSummary-text-arxiv_summary-test-rouge.csv", index=False)
+    # df4.to_csv("predictions_id_target_pred.csv", index=False)
 
+    rouge_score = evaluate.load("rouge")
+    scores = rouge_score.compute(
+        predictions=df4["prediction"], references=df4["target"]
+    )
+    rouge = scores["rouge1"]
+    print("scores", scores)
+    t2 = time.time()
+    print("Time taken", t2 - t1)
     print("Untrained baseline")
 
     # metric = load_metric("rouge")
@@ -375,7 +389,11 @@ def main(
     df["summ"] = df["abstract"].progress_apply(
         lambda x: summarz(x, max_length=val_max_length)
     )
-    print("Rougue baseline", calc_rouge_scores(df["title"], df["summ"]))
+    print(
+        "Rougue baseline",
+        rouge_score.compute(references=df["title"], predictions=df["summ"]),
+    )
+    # print("Rougue baseline", calc_rouge_scores(df["title"], df["summ"]))
 
 
 if __name__ == "__main__":

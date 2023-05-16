@@ -53,7 +53,7 @@ def train_generator(
     if not train_dataset:
         # Just working on supercon category
         df = pd.read_csv(csv_file, dtype="str")
-        df = df[df["categories"] == "cond-mat.supr-con"]  # [0:500]
+        df = df[df["categories"] == "cond-mat.supr-con"][0:500]
         df = df.drop_duplicates(subset="id")
         n_train = int(len(df) * train_size)
         n_val = len(df) - n_train

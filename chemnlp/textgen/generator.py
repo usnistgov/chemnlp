@@ -33,6 +33,8 @@ if torch.cuda.is_available():
     device = torch.device("cuda")
 
 # wget https://figshare.com/ndownloader/files/39768544 -O cond_mat.zip
+
+
 def train_generator(
     csv_file="cond_mat.zip",
     train_dataset=[],
@@ -49,6 +51,7 @@ def train_generator(
     calculate_baseline=True,
     max_new_tokens=200,
 ):
+    "Train LLM generator." ""
     t1 = time.time()
     if not train_dataset:
         # Just working on supercon category

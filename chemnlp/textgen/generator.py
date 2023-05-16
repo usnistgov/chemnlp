@@ -13,6 +13,8 @@ import math
 from tqdm import tqdm
 import time
 import evaluate
+from collections import defaultdict
+from jarvis.db.jsonutils import dumpjson
 
 random_seed = 123
 torch.manual_seed(random_seed)
@@ -26,14 +28,13 @@ rouge_score = evaluate.load("rouge")
 # torch.cuda.is_available = lambda : False
 
 tqdm.pandas()
-
-
 device = "cpu"
 if torch.cuda.is_available():
     device = torch.device("cuda")
 
-
+# wget https://figshare.com/ndownloader/files/39768544 -O cond_mat.zip
 def train_generator(
+    csv_file="cond_mat.zip",
     train_dataset=[],
     val_dataset=[],
     train_size=0.8,
@@ -51,9 +52,7 @@ def train_generator(
     t1 = time.time()
     if not train_dataset:
         # Just working on supercon category
-        df = pd.read_csv(
-            "/wrk/knc6/AtomNLP/Summarize/cond_mat.csv", dtype="str"
-        )
+        df = pd.read_csv(csv_file, dtype="str")
         df = df[df["categories"] == "cond-mat.supr-con"]  # [0:500]
         df = df.drop_duplicates(subset="id")
         n_train = int(len(df) * train_size)
@@ -61,6 +60,16 @@ def train_generator(
 
         train_dataset = df[:n_train].reset_index(drop=True)
         val_dataset = df[-n_val:].reset_index(drop=True)
+        xtrain = defaultdict()
+        xtest = defaultdict()
+        for i, ii in train_dataset.iterrows():
+            xtrain[ii["id"]] = ii["abstract"]
+        for i, ii in val_dataset.iterrows():
+            xtest[ii["id"]] = ii["abstract"]
+        m = {}
+        m["train"] = xtrain
+        m["test"] = xtest
+        dumpjson(data=m, filename="arxiv_gen_text.json")
 
     train_dataset["text"] = (
         train_dataset["title"]

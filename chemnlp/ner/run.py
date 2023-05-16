@@ -1,15 +1,17 @@
 import numpy as np
 import pandas as pd
-from scipy.special import softmax
+
+# from scipy.special import softmax
 import os
-import pathlib
+
+# import pathlib
 from tokenizers.normalizers import BertNormalizer
 from simpletransformers.ner import NERModel
-import re, os
+import re
 import time
-import pandas as pd
 from jarvis.db.jsonutils import dumpjson, loadjson
-from collections import defaultdict
+
+# from collections import defaultdict
 from sklearn.metrics import accuracy_score, f1_score
 
 
@@ -21,16 +23,24 @@ def parse_file(f_name):
     for sent in data:
         sent_tokens, sent_labels = [], []
         for line in sent.split("\n"):
-            l = re.split(r" +", line)
-            if len(l) != 2:
+            # l = re.split(r" +", line)
+            # if len(l) != 2:
+            #    sent_tokens = []
+            #    break
+            # if len(l[0]) == 0:
+            #    l[0] = " "
+            # if len(l[1]) == 0:
+            #    l[1] = "O"
+            ll = re.split(r" +", line)
+            if len(ll) != 2:
                 sent_tokens = []
                 break
-            if len(l[0]) == 0:
-                l[0] = " "
-            if len(l[1]) == 0:
-                l[1] = "O"
-            sent_tokens.append(l[0])
-            sent_labels.append(l[1])
+            if len(ll[0]) == 0:
+                ll[0] = " "
+            if len(ll[1]) == 0:
+                ll[1] = "O"
+            sent_tokens.append(ll[0])
+            sent_labels.append(ll[1])
         if len(sent_tokens) > 0:
             tokens.append(sent_tokens)
             labels.append(sent_labels)

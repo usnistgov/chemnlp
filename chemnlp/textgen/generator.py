@@ -41,7 +41,7 @@ def train_generator(
     model_checkpoint="gpt2-medium",
     SEED=42,
     batch_size=2,
-    num_train_epochs=1,
+    num_train_epochs=5,
     num_proc=4,
     learning_rate=2e-5,
     weight_decay=0.01,

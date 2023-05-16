@@ -2,8 +2,12 @@
 import dgl
 from dgl.dataloading.pytorch import GraphDataLoader
 from dgl.data import DGLDataset
-from dgl.nn.pytorch import GraphConv, GATConv, GatedGraphConv, DotGatConv
-from dgl.nn import AvgPooling, MaxPooling
+from dgl.nn.pytorch import GraphConv, GATConv, DotGatConv
+
+# from dgl.nn.pytorch import GraphConv, GATConv, GatedGraphConv, DotGatConv
+from dgl.nn import AvgPooling
+
+# , MaxPooling
 import torch.nn.functional as F
 
 import matplotlib.pyplot as plt
@@ -20,23 +24,27 @@ import pickle
 import seaborn as sns
 import string
 import sklearn
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.decomposition import TruncatedSVD
-from sklearn.manifold import TSNE
-import seaborn as sns
-from sklearn.model_selection import StratifiedKFold
+
+# from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+# from sklearn.model_selection import train_test_split
+# from sklearn.decomposition import TruncatedSVD
+# from sklearn.manifold import TSNE
+# import seaborn as sns
+# from sklearn.model_selection import StratifiedKFold
 import scipy.sparse as sp
 
 from tqdm import tqdm
 import torch
-from torch.utils.data import Dataset, DataLoader
+
+# from torch.utils.data import DataLoader
+
+# from torch.utils.data import Dataset, DataLoader
 from torch.nn import CrossEntropyLoss
 import torch.nn as nn
 
 
-from wordcloud import WordCloud
-import wandb
+# from wordcloud import WordCloud
+# import wandb
 import warnings
 
 
@@ -104,12 +112,17 @@ def load_embeddings(path):
 
 def check_coverage(vocab, embeddings_index):
     """
-    Returns list of tuples. The first element of each tuple specifies the word present in the description but not in the embeddings  and the second element
-    specifies the count of that word in the descriptions. The tuples are sorted in the descending order of their count.
+    Returns list of tuples. The first element of each tuple specifies
+    the word present in the description but not in the embeddings
+    and the second element
+    specifies the count of that word in the descriptions.
+    The tuples are sorted in the descending order of their count.
 
         Parameters:
-            vocab (dict): Dictionary with keys as words and values as their count of occurence
-            embeddings_index (dict): Dictionary with keys as words and values as their embeddings
+            vocab (dict): Dictionary with keys as words and
+            values as their count of occurence
+            embeddings_index (dict): Dictionary with keys as
+            words and values as their embeddings
 
         Returns:
             List of tuples
@@ -122,7 +135,7 @@ def check_coverage(vocab, embeddings_index):
         try:
             a[word] = embeddings_index[word]
             k += vocab[word]
-        except:
+        except Exception:
 
             oov[word] = vocab[word]
             i += vocab[word]
@@ -137,7 +150,8 @@ def check_coverage(vocab, embeddings_index):
 
 def build_vocab(sentences, verbose=True):
     """
-    Returns dictionary with keys as words in the sentences and values as their count of occurence
+    Returns dictionary with keys as words in the
+     sentences and values as their count of occurence
 
         Parameters:
             sentences (list of list): List of lists of descriptions
@@ -156,7 +170,9 @@ def build_vocab(sentences, verbose=True):
     return vocab
 
 
-def build_graph(start, end, truncate=False, weighted_graph=True):
+def build_graph(
+    start, end, truncate=False, weighted_graph=True, MAX_TRUNC_LEN=100
+):
     """
     Returns list of adjacency matrix and list of node matrix
 
@@ -164,7 +180,8 @@ def build_graph(start, end, truncate=False, weighted_graph=True):
             start (int): start index of list
             end (int): end index of list
             truncate (bool): whether to truncate the text
-            weighted_graph (bool): whether to use word pair count as the weight in adjacency matrix or just 1.0
+            weighted_graph (bool): whether to use word pair
+            count as the weight in adjacency matrix or just 1.0
 
         Returns:
             list of adjacency matrices, list of node matrices
@@ -283,12 +300,12 @@ class GraphDataset(DGLDataset):
 
         scipy_adj = self.adj_matrix[idx]
         G = dgl.from_scipy(scipy_adj)
-        #         feat = torch.zeros((len(self.node_matrix[idx]), 50))
-        #         self.n = self.node_matrix[idx]
-        #         for item in self.n:
-        #             feat[int(item[0])] = torch.tensor(item[1], dtype = torch.float)
+        # feat = torch.zeros((len(self.node_matrix[idx]), 50))
+        # self.n = self.node_matrix[idx]
+        # for item in self.n:
+        #     feat[int(item[0])] = torch.tensor(item[1], dtype = torch.float)
 
-        #         G.ndata['feat'] = feat
+        # G.ndata['feat'] = feat
         G.ndata["feat"] = torch.stack(
             [torch.tensor(x, dtype=torch.float) for x in self.node_matrix[idx]]
         )
@@ -320,7 +337,8 @@ class Classifier(nn.Module):
         return self.classify(h)
 
 
-# Graph Neural Network with Attention Layers where the node features are concatenated for attention
+# Graph Neural Network with Attention Layers where
+# the node features are concatenated for attention
 class GATClassifier(nn.Module):
     def __init__(self, in_dim, hidden_dim, num_heads, n_classes):
         super(GATClassifier, self).__init__()
@@ -347,7 +365,8 @@ class GATClassifier(nn.Module):
         return self.classify(h)
 
 
-# Graph Neural Network with Attention Layers where a dot product is performed between node features
+# Graph Neural Network with Attention
+# Layers where a dot product is performed between node features
 class GATDotClassifier(nn.Module):
     def __init__(self, in_dim, hidden_dim, num_heads, n_classes):
         super(GATDotClassifier, self).__init__()
@@ -371,11 +390,13 @@ class GATDotClassifier(nn.Module):
 
 def train_fold(args, adj_list, node_list, fold=0):
     """
-    Returns dictionary with loss, f1, auc and mrr as the keys and list containing their epochwise scores as values.
+    Returns dictionary with loss, f1, auc and mrr as the
+    keys and list containing their epochwise scores as values.
     This function trains and validates a model over a fold of dataset
 
         Parameters:
-            args (class): Class containing variables specifying values necessary for training model
+            args (class): Class containing variables specifying
+            values necessary for training model
             adj_list (list): list of adjacency matrices
             node_list (list): list of node matrices
             fold (int): fold to validate model on.
@@ -409,7 +430,6 @@ def train_fold(args, adj_list, node_list, fold=0):
         train["target"].values,
         val["target"].values,
     )
-    #     weights = torch.tensor(1/pd.Series(train_label_list).value_counts().sort_index().values, dtype = torch.float)
 
     traindataset = GraphDataset(
         train_adj_list, train_node_list, train_label_list
@@ -430,7 +450,7 @@ def train_fold(args, adj_list, node_list, fold=0):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     scheduler = None
 
-    best_val_mrr = 0
+    # best_val_mrr = 0
     best_val_acc = 0
 
     loss = []
@@ -479,7 +499,8 @@ def train_fold(args, adj_list, node_list, fold=0):
         mrr.append((train_mrr, val_mrr))
 
         if val_acc > best_val_acc:
-            torch.save(model.state_dict(), f"model.pt")
+            torch.save(model.state_dict(), "model.pt")
+            # torch.save(model.state_dict(), f"model.pt")
             best_val_acc = val_acc
 
             plt.rcParams.update({"font.size": 20})
@@ -505,7 +526,6 @@ def train_fold(args, adj_list, node_list, fold=0):
             f.write(str(accuracy_score(one_hot_labels, all_logits)))
             f.close()
 
-        # print('train_loss, train_f1, train_auc, train_mrr, val_loss, val_f1, val_auc, val_mrr',train_loss, train_f1, train_auc, train_mrr, val_loss, val_f1, val_auc, val_mrr)
     return {"loss": loss, "f1": f1, "auc": auc, "mrr": mrr}
 
 
@@ -516,16 +536,17 @@ def train_one_epoch(
     Returns training loss, f1, roc_auc and mrr scores over 1 epoch
     This function trains model for 1 epoch
 
-        Parameters:
-            trainloader (DataLoader/Iterable): dataloader that yields a batch for training
-            model (nn.Module): model used for training
-            criterion (nn.Module): loss function
-            optimizer (Optimizer): used to optimize the loss function
-            scheduler (Scheduler): used to change the learning rate over epochs
-            num_classes (int): number of classes
+    Parameters:
+        trainloader (DataLoader/Iterable): dataloader that yields a
+         batch for training
+        model (nn.Module): model used for training
+        criterion (nn.Module): loss function
+        optimizer (Optimizer): used to optimize the loss function
+        scheduler (Scheduler): used to change the learning rate over epochs
+        num_classes (int): number of classes
 
-        Returns:
-            loss, f1, roc_auc and mrr floats
+    Returns:
+        loss, f1, roc_auc and mrr floats
 
 
     """
@@ -594,7 +615,8 @@ def validate(valloader, model, criterion, num_classes):
     This function validates the model
 
         Parameters:
-            valloader (DataLoader/Iterable): dataloader that yields a batch for validating
+            valloader (DataLoader/Iterable):
+            dataloader that yields a batch for validating
             model (nn.Module): model to be used for validation
             criterion (nn.Module): loss function
             num_classes (int): number of classes
@@ -639,7 +661,6 @@ def validate(valloader, model, criterion, num_classes):
         all_labels = np.concatenate(all_labels)
         all_logits = np.concatenate(all_logits)
         all_logits_argmax = np.concatenate(all_logits_argmax)
-        # print((idx2label[lab], idx2label[log.argmax(-1)]) for (lab, log) in zip(all_labels, all_logits))
 
         one_hot_labels = np.zeros((len(all_labels), num_classes))
         one_hot_labels[np.arange(len(all_labels)), all_labels] = 1.0
@@ -704,15 +725,20 @@ def log_results(
         "epoch": idx,
     }
 
+    print(metric_dict)
+
 
 def test(args, n_classes):
     """
-    Returns test dataframe with 'preds_list' and 'preds' as two new columns. 'preds_list' has a list for each description with
-    predictions sorted in descending order of their softmax score. It can be used for test mrr evaluation. 'preds' column has the first entry
+    Returns test dataframe with 'preds_list' and 'preds' as two new columns.
+    'preds_list' has a list for each description with
+    predictions sorted in descending order of their softmax score.
+    It can be used for test mrr evaluation. 'preds' column has the first entry
     of the 'preds_list' list for each sample.
 
         Parameters:
-            args (class): Class containing variables specifying values necessary for training model
+            args (class): Class containing variables specifying
+            values necessary for training model
             n_classes (int): number of classes
 
         Returns:
@@ -722,7 +748,7 @@ def test(args, n_classes):
     """
 
     num_classes = n_classes
-    window_size = args.window_size
+    # window_size = args.window_size
 
     print("building graphs for training")
     x_adj, x_feature = build_graph(
@@ -737,7 +763,7 @@ def test(args, n_classes):
     model = GATClassifier(
         args.embedding_dim, args.hidden_dim, args.num_heads, num_classes
     )
-    model_list = load_models(model, args.n_folds)
+    model_list = [model]  # load_models(model, args.n_folds)
 
     pred_list = []
 
@@ -747,7 +773,8 @@ def test(args, n_classes):
             logits = 0
             for mod in model_list:
                 log = mod(G, h)
-                # blending of logits from all 5 models. This helps in getting more robust predictions.
+                # blending of logits from all 5 models. i
+                # This helps in getting more robust predictions.
                 logits += log.softmax(-1) / args.n_folds
 
             pred_soft = logits.detach().cpu().numpy()
@@ -855,7 +882,8 @@ for v in vocab:
 window_size = args.window_size
 
 print("building graphs for training")
-# x_adj, x_feature = build_graph(start=0, end=len(traindf), weighted_graph = True)
+# x_adj, x_feature =
+# build_graph(start=0, end=len(traindf), weighted_graph = True)
 x_adj, x_feature = build_graph(
     start=0, end=len(traindf) + len(testdf), weighted_graph=True
 )

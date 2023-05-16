@@ -248,8 +248,9 @@ def train_classifier(
 
 
 if __name__ == "__main__":
-    #df = pd.read_csv("cond_mat.csv")
+    # df = pd.read_csv("cond_mat.csv")
     df = pd.read_csv("/wrk/knc6/AtomNLP/Summarize/cond_mat.csv")
-    #df = pd.read_csv("/wrk/knc6/AtomNLP/chemnlp/chemnlp/sample_data/cond_mat_small.csv")
-    
-    train_classifier(df=df,max_length=8)
+    fname = "/wrk/knc6/AtomNLP/chemnlp/chemnlp/sample_data/cond_mat_small.csv"
+    # df = pd.read_csv(fname)
+
+    train_classifier(df=df, max_length=8)

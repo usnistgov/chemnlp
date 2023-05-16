@@ -1,20 +1,16 @@
+"""Module to summarize documents."""
 # https://colab.research.google.com/github/abhimishra91/
 # transformers-tutorials/blob/master/transformers_summarization_wandb.ipynb
 import numpy as np
 import torch
-
-# import torch.nn.functional as F
 from torch.utils.data import (
     Dataset,
     DataLoader,
     #    RandomSampler,
     #    SequentialSampler,
 )
-
-# import wandb
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 from torch import cuda
-from datasets import load_metric
 from tqdm import tqdm
 from transformers import pipeline
 import pandas as pd
@@ -23,6 +19,7 @@ from jarvis.db.jsonutils import dumpjson
 from collections import defaultdict
 import time
 import evaluate
+# from datasets import load_metric
 
 tqdm.pandas()
 
@@ -366,7 +363,7 @@ def main(
         predictions=df4["prediction"], references=df4["target"]
     )
     rouge = scores["rouge1"]
-    print("scores", scores)
+    print("scores", scores, rouge)
     t2 = time.time()
     print("Time taken", t2 - t1)
     print("Untrained baseline")

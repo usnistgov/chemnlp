@@ -1,4 +1,4 @@
-[![name](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/ChemNLP_Example.ipynb)
+[![name](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
 ![alt text](https://github.com/usnistgov/chemnlp/actions/workflows/main.yml/badge.svg)
 
 # ChemNLP
@@ -66,6 +66,11 @@ run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
 python chemnlp/classification/scikit_class.py --csv_path chemnlp/sample_data/cond_mat_small.csv
 ```
+
+[Google Colab example for installation and text classification](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
+
+[Google Colab example for Text Generation with HuggingFace](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_TitleToAbstract.ipynb)
+
 
 <a name="webapp"></a>
 Using the webapp

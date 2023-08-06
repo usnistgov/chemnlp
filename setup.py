@@ -13,7 +13,7 @@ setuptools.setup(
         "numpy>=1.22.0",
         "scipy>=1.6.3",
         "jarvis-tools>=2021.07.19",
-        #"ChemDataExtractor>=1.3.0",
+        "ChemDataExtractor>=1.3.0",
         "matplotlib>=3.4.1",
         "flake8>=3.9.1",
         "pycodestyle>=2.7.0",

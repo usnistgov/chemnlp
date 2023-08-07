@@ -33,7 +33,7 @@ bash Miniconda3-latest-MacOSX-x86_64.sh (for Mac)
 Download 32/64 bit python 3.8 miniconda exe and install (for windows)
 Now, let's make a conda environment, say "chemnlp", choose other name as you like::
 ```
-conda create --name chemnlp python=3.8
+conda create --name chemnlp python=3.9
 source activate chemnlp
 ```
 #### Method 1 (using setup.py):

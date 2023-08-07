@@ -6,24 +6,42 @@ from jarvis.analysis.structure.spacegroup import Spacegroup3D
 from jarvis.analysis.diffraction.xrd import XRD
 from jarvis.core.specie import Specie
 import pprint
+from collections import defaultdict
 
 
-def atoms_describer(atoms=[], xrd_peaks=5, xrd_round=1):
+def atoms_describer(
+    atoms=[], xrd_peaks=5, xrd_round=1, cutoff=4, take_n_bomds=2
+):
     """Describe an atomic structure."""
     spg = Spacegroup3D(atoms)
     theta, d_hkls, intens = XRD().simulate(atoms=(atoms))
-    x = atoms.atomwise_angle_and_radial_distribution()
+    #     x = atoms.atomwise_angle_and_radial_distribution()
+    #     bond_distances = {}
+    #     for i, j in x[-1]["different_bond"].items():
+    #         bond_distances[i.replace("_", "-")] = ", ".join(
+    #             map(str, (sorted(list(set([round(jj, 2) for jj in j])))))
+    #         )
+    dists = defaultdict(list)
+    elements = atoms.elements
+    for i in atoms.get_all_neighbors(r=cutoff):
+        for j in i:
+            key = "-".join(sorted([elements[j[0]], elements[j[1]]]))
+            dists[key].append(j[2])
     bond_distances = {}
-    for i, j in x[-1]["different_bond"].items():
-        bond_distances[i.replace("_", "-")] = ", ".join(
-            map(str, (sorted(list(set([round(jj, 2) for jj in j])))))
-        )
+    for i, j in dists.items():
+        dist = sorted(set([round(k, 2) for k in j]))
+        if len(dist) >= take_n_bomds:
+            dist = dist[0:take_n_bomds]
+        bond_distances[i] = ", ".join(map(str, dist))
+    fracs = {}
+    for i, j in (atoms.composition.atomic_fraction).items():
+        fracs[i] = round(j, 3)
     info = {}
     chem_info = {
         "atomic_formula": atoms.composition.reduced_formula,
         "prototype": atoms.composition.prototype,
         "molecular_weight": round(atoms.composition.weight / 2, 2),
-        "atomic_fraction": json.dumps(atoms.composition.atomic_fraction),
+        "atomic_fraction": json.dumps(fracs),
         "atomic_X": ", ".join(
             map(str, [Specie(s).X for s in atoms.uniq_species])
         ),
@@ -67,3 +85,14 @@ if __name__ == "__main__":
     )
     info = atoms_describer(atoms=atoms)
     pprint.pprint(info)
+    from pygments import highlight
+    from pygments.formatters.terminal256 import Terminal256Formatter
+    from pygments.lexers.web import JsonLexer
+
+    raw_json = json.dumps(info, indent=4)
+    colorful = highlight(
+        raw_json,
+        lexer=JsonLexer(),
+        formatter=Terminal256Formatter(),
+    )
+    print(colorful)

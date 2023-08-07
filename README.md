@@ -75,6 +75,8 @@ python chemnlp/classification/scikit_class.py --csv_path chemnlp/sample_data/con
 
 [Google Colab example for installation and text classification](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
 
+#### Text generation example
+
 [Google Colab example for Text Generation with HuggingFace](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_TitleToAbstract.ipynb)
 
 

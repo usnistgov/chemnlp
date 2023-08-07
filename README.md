@@ -17,6 +17,10 @@ Introduction
 -------------------------
 ChemNLP is a software-package to process chemical information from the scientific literature.
 
+<p align="center">
+   <img src="https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/Schemcatic.PNG" alt="ChemNLP"  width="600"/>
+</p>
+
 <a name="install"></a>
 Installation
 -------------------------

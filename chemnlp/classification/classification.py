@@ -46,7 +46,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--feature_selection_algorithm",
-    default="mutual_info_classif",
+    default="chi2",
 )
 parser.add_argument(
     "--do_dimonsionality_reduction",
@@ -58,7 +58,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--n_components",
-    default=5,
+    default=20,
 )
 
 
@@ -109,10 +109,10 @@ def classify(
 
     classifiction_algorithm = "SVC",
     do_feature_selection = False,
-    feature_selection_algorithm = "mutual_info_classif",
+    feature_selection_algorithm = "chi2",
     do_dimonsionality_reduction = False,
     k_best=1500,
-    n_components=5,
+    n_components=20,
 ):
     """Classifcy data using scikit-learn library algos."""
     df = pd.read_csv(csv_path, dtype="str")
@@ -213,9 +213,17 @@ def classify(
 
     # Perform  feature selection
     if(do_feature_selection):
-        feature_selector = SelectKBest(feature_selection_algorithm, k=k_best)
-        X_train = feature_selector.fit_transform(X_train, y_train)
-        X_test = feature_selector.transform(X_test)
+      if(feature_selection_algorithm=="chi2"):
+        feature_selector = SelectKBest(chi2, k=k_best)
+
+      elif (feature_selection_algorithm=="f_classif"):
+        feature_selector = SelectKBest(f_classif, k=k_best)
+
+      elif(feature_selection_algorithm=="mutual_info_classif"):
+        feature_selector = SelectKBest(mutual_info_classif, k=k_best)
+      
+      X_train = feature_selector.fit_transform(X_train, y_train)
+      X_test = feature_selector.transform(X_test)
 
 
     if classifiction_algorithm == "SVC":
@@ -241,9 +249,9 @@ def classify(
         print("MLPClassifier", accuracy_score(y_test, y_pred))
         
         
-    elif classifiction_algorithm == "KNeighborsClassifier":
+    elif classifiction_algorithm == "KNN":
         print("Training KNN:")
-        model = KNeighborsClassifier(n_neighbors=3)
+        model = KNeighborsClassifier(n_neighbors=1)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         f = open("accuracy_KNN", "w")
@@ -294,12 +302,12 @@ def classify(
 
 
 
-    elif classifiction_algorithm == "MultiNomial":
-        print("Training MultiNomial:")
+    elif classifiction_algorithm == "MultinomialNB":
+        print("Training MultinomialNB:")
         # MultinomialNB()
         model = MultinomialNB()
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+        model.fit(abs(X_train), y_train)
+        y_pred = model.predict(abs(X_test))
         f = open("accuracy_MultinomialNB", "w")
         f.write(str(accuracy_score(y_test, y_pred)))
         f.close()

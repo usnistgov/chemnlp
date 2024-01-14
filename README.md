@@ -4,6 +4,11 @@
 
 # Chemistry-NLP
 
+# New Releases
+* Text classification using different algorithms
+* Feature selection
+* Dimosionality reduction
+  
 # Table of Contents
 * [Introduction](#intro)
 * [Installation](#install)

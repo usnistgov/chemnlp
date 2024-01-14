@@ -58,7 +58,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--n_components",
-    n_components=5,
+    default=5,
 )
 
 

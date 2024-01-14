@@ -1,7 +1,6 @@
 [![name](https://colab.research.google.com/assets/colab-badge.svg)]([[https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb]](https://colab.research.google.com/drive/1FRayOxp07ReOUUrL7ZXkPTmF1Ocu5ygI?usp=sharing))
-![alt text](https://github.com/zaki1003/Chemistry-NLP/actions/workflows/main.yml/badge.svg)
+![alt text](https://github.com/usnistgov/chemnlp/actions/workflows/main.yml/badge.svg)
 [![DOI](https://zenodo.org/badge/523320947.svg)](https://zenodo.org/badge/latestdoi/523320947)
-
 
 # Chemistry-NLP
 

@@ -103,7 +103,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <th rowspan=2></th>
             <th rowspan=2>original data</th>
             <th colspan=3>Feature Selection with k_best=1500</th>
-            <th>Dimonsionality Reduction with n_component=15</th>
+            <th>Dimonsionality Reduction with n_component=20</th>
         </tr>
     </thead>
     <tbody>
@@ -118,10 +118,10 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
         <tr>
             <td >SVC</td>
             <td><b>0.94</b></td>
-            <td> </td>
-            <td>  </td>
-            <td> </td>
-            <td> </td>
+            <td> 0.90</td>
+            <td> 0.90 </td>
+            <td>0.90 </td>
+            <td> 0.81 </td>
         </tr>
         <tr>
             <td >MLPClassifier</td>
@@ -129,14 +129,14 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <td> 0.87 </td>
             <td>  0.87 </td>
             <td> 0.866 </td>
-            <td>  </td>
+            <td> 0.84</td>
         </tr>
         <tr>
             <td >RandomForestClassifier</td>
             <td><b>0.94</b>  </td>
-            <td>  </td>
-            <td>   </td>
-            <td>  </td>
+            <td> <b> 0.93 </b></td>
+            <td>   <b> 0.94 </b> </td>
+            <td> <b>0.93</b> </td>
             <td> 0.93  </td>
         </tr>
         <tr>
@@ -145,7 +145,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <td>0.88</td>
             <td> 0.89 </td>
             <td> 0.88 </td>
-            <td>  </td>
+            <td> 0.80 </td>
         </tr>
         <tr>
             <td >XGBoost</td>
@@ -161,7 +161,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <td> 0.84 </td>
             <td> 0.82 </td>
             <td>0.84</td>
-            <td><b>0.91</b></td>
+            <td><b>0.91 (here KNN is the fastest)</b></td>
         </tr>
         <tr>
             <td >MultinomialNB</td>
@@ -169,7 +169,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <td> 0.85 </td>
             <td> 0.86 </td>
             <td>0.85</td>
-            <td></td>
+            <td> 0.53 (doesn't support negative values)</td>
         </tr>
     </tbody>
 </table>

@@ -84,7 +84,7 @@ Using the webapp
 ---------
 The webapp is available at: https://jarvis.nist.gov/jarvischemnlp
 
-![JARVIS-ChemNLP](https://github.com/zaki1003/Chemistry-NLP/blob/develop/chemnlp/PTable.PNG)
+![JARVIS-ChemNLP](https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/PTable.PNG)
 
 <a name="reference"></a>
 Reference

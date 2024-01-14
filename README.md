@@ -66,7 +66,7 @@ cde data download
 <a name="classification"></a>
 Classification
 ---------
-For classification I tried 8 classification algorithms: SVC, MLPClassifier, RandomForestClassifier, DecisionTreeClassifier, Logistic, XGBoost, KNN, MultinomialNB. 
+For classification I tried 7 classification algorithms: SVC, MLPClassifier, RandomForestClassifier, DecisionTreeClassifier, Logistic, XGBoost, KNN, MultinomialNB. 
 
 ### Feature selection in text classification:
 Feature selection is one of the most important steps in the field of text classification. As text data mostly have high dimensionality problems. To reduce the curse of high dimensionality, feature selection techniques are used. The basic idea behind feature selection is to keep only important features and remove less contributing features.

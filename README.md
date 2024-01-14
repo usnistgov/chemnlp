@@ -96,27 +96,83 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
 
 **NB**: The PCA didn't work because it does not support sparse input.
 
-
 ### Classification Results:
-|                |          original data      |      chi-square   |           mutual_info_classif      |          f_classif         | Trunced SVD |      
-|:-------------------|:---------------|:--------------|:-------------|:-----------|:------------------|
-|         SVC      |          **0.94**      |     0.15       |        0.754        |        0.382           |      0.120            |                    
-|       MLPClassifier        |            **0.94**          |         **0.158**         |      **0.756**        |        **0.424** | 10.1 | 
-
-|       RandomForestClassifier        |            **0.94**          |         0.158         |     0.756        |        0.424 | 10.1 | 
-
-|       Logistic regression        |            **0.92**          |         **0.158**         |      **0.756**        |        **0.424** | 10.1 | 
-
-
-|       XGBoost        |            **0.90**          |         **0.158**         |      **0.756**        |        **0.424** | 10.1 | 
-
-
-
-|       KNN        |            0.53          |         **0.158**         |      **0.756**        |        **0.424** | 10.1 | 
-
-
-|       MultinomialNB        |            **0.89**          |         **0.158**         |      **0.756**        |        **0.424** | 10.1 | 
-
+<table>
+    <thead>
+        <tr>
+            <th rowspan=2></th>
+            <th rowspan=2>original data</th>
+            <th colspan=3>Feature Selection with k_best=1500</th>
+            <th>Dimonsionality Reduction with n_component=15</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td ></td>
+            <td></td>
+            <td>chi-square</td>
+            <td>  mutual_info_classif</td>
+            <td>f_classif</td>
+            <td>Trunced SVD</td>
+        </tr>
+        <tr>
+            <td >SVC</td>
+            <td><b>0.94</b></td>
+            <td> </td>
+            <td>  </td>
+            <td> </td>
+            <td> </td>
+        </tr>
+        <tr>
+            <td >MLPClassifier</td>
+            <td> <b>0.94</b></td>
+            <td> 0.87 </td>
+            <td>  0.87 </td>
+            <td> 0.866 </td>
+            <td>  </td>
+        </tr>
+        <tr>
+            <td >RandomForestClassifier</td>
+            <td><b>0.94</b>  </td>
+            <td>  </td>
+            <td>   </td>
+            <td>  </td>
+            <td> 0.93  </td>
+        </tr>
+        <tr>
+            <td >Logistic regression </td>
+            <td> <b>0.92</b></td>
+            <td>0.88</td>
+            <td> 0.89 </td>
+            <td> 0.88 </td>
+            <td>  </td>
+        </tr>
+        <tr>
+            <td >XGBoost</td>
+            <td> <b>0.91</b></td>
+            <td> <b>0.90</b> </td>
+            <td> <b>0.90</b> </td>
+            <td><b>0.90</b></td>
+            <td>0.93</td>
+        </tr>
+        <tr>
+            <td >KNN</td>
+            <td> 0.53</td>
+            <td> 0.84 </td>
+            <td> 0.82 </td>
+            <td>0.84</td>
+            <td>0.91</td>
+        </tr>
+        <tr>
+            <td >MultinomialNB</td>
+            <td> <b>0.89</b></td>
+            <td> 0.85 </td>
+            <td> 0.86 </td>
+            <td>0.85</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
 
 
 

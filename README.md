@@ -57,6 +57,50 @@ pip install chemnlp
 cde data download
 ```
 
+
+<a name="classification"></a>
+Classification
+---------
+For classification I tried 8 classification algorithms: SVC, MLPClassifier, RandomForestClassifier, DecisionTreeClassifier, Logistic, XGBoost, KNN, MultinomialNB. 
+
+### Feature selection in text classification:
+Feature selection is one of the most important steps in the field of text classification. As text data mostly have high dimensionality problems. To reduce the curse of high dimensionality, feature selection techniques are used. The basic idea behind feature selection is to keep only important features and remove less contributing features.
+
+Issues associated with high dimensionality are as follows:
+
+1. Adds unnecessary noise to the model
+
+2. High space and time complexity
+
+3. Overfitting
+
+
+The feature selection techniques we used in our project are: 
+
+the Chi-Square feature selection: The Chi-square test is used in statistics to test the independence of two events. More specifically in feature selection, we use it to test whether the occurrence of a specific term and the occurrence of a specific class are independent.
+
+f_classif : Compute the ANOVA F-value between label/feature for classification tasks.
+
+mutual_info_classif : Estimate mutual information for a discrete target variable
+
+### Dimosionality reduction in text classification:
+In the field of Natural Language Processing (NLP), analyzing and processing vast amounts of text data can be challenging. Dimensionality reduction techniques come to our rescue by simplifying the data and extracting meaningful information.
+
+The dimosionality reduction technique we used in our project is: 
+TruncatedSVD: This transformer performs linear dimensionality reduction by means of truncated singular value decomposition (SVD). Contrary to PCA, this estimator does not center the data before computing the singular value decomposition. This means it can work with sparse matrices efficiently. And it works efficiently on count/tf-idf vactors.
+
+NB: The PCA didn't work because it does not support sparse input.
+
+
+### Classification Results:
+
+
+
+
+
+
+
+
 <a name="example"></a>
 Examples
 ---------

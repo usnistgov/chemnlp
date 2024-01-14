@@ -1,9 +1,9 @@
 [![name](https://colab.research.google.com/assets/colab-badge.svg)]([[https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb]](https://colab.research.google.com/drive/1FRayOxp07ReOUUrL7ZXkPTmF1Ocu5ygI?usp=sharing))
-![alt text](https://github.com/usnistgov/chemnlp/actions/workflows/main.yml/badge.svg)
+![alt text](https://github.com/zaki1003/Chemistry-NLP/actions/workflows/main.yml/badge.svg)
 [![DOI](https://zenodo.org/badge/523320947.svg)](https://zenodo.org/badge/latestdoi/523320947)
 
 
-# ChemNLP
+# Chemistry-NLP
 
 # Table of Contents
 * [Introduction](#intro)
@@ -15,10 +15,10 @@
 <a name="intro"></a>
 Introduction
 -------------------------
-ChemNLP is a software-package to process chemical information from the scientific literature.
+Chemistry-NLP is a software-package to process chemical information from the scientific literature.
 
 <p align="center">
-   <img src="https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/Schemcatic.PNG" alt="ChemNLP"  width="600"/>
+   <img src="https://github.com/zaki1003/Chemistry-NLP/blob/develop/chemnlp/Schemcatic.PNG" alt="ChemNLP"  width="600"/>
 </p>
 
 <a name="install"></a>
@@ -35,24 +35,24 @@ bash Miniconda3-latest-Linux-x86_64.sh (for linux)
 bash Miniconda3-latest-MacOSX-x86_64.sh (for Mac)
 ```
 Download 32/64 bit python 3.8 miniconda exe and install (for windows)
-Now, let's make a conda environment, say "chemnlp", choose other name as you like::
+Now, let's make a conda environment, say "Chemistry-NLP", choose other name as you like::
 ```
-conda create --name chemnlp python=3.9
-source activate chemnlp
+conda create --name Chemistry-NLP python=3.9
+source activate Chemistry-NLP
 ```
 #### Method 1 (using setup.py):
 
 Now, let's install the package:
 ```
-git clone https://github.com/usnistgov/chemnlp.git
-cd chemnlp
+git clone https://github.com/zaki1003/Chemistry-NLP.git
+cd Chemistry-NLP
 python setup.py develop
 cde data download
 ```
 
 #### Method 2 (using pypi):
 
-As an alternate method, ChemNLP can also be installed using `pip` command as follows:
+As an alternate method, Chemistry-NLP can also be installed using `pip` command as follows:
 ```
 pip install chemnlp
 cde data download
@@ -85,7 +85,7 @@ Using the webapp
 ---------
 The webapp is available at: https://jarvis.nist.gov/jarvischemnlp
 
-![JARVIS-ChemNLP](https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/PTable.PNG)
+![JARVIS-ChemNLP](https://github.com/zaki1003/Chemistry-NLP/blob/develop/chemnlp/PTable.PNG)
 
 <a name="reference"></a>
 Reference

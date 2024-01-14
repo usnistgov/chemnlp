@@ -161,7 +161,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <td> 0.84 </td>
             <td> 0.82 </td>
             <td>0.84</td>
-            <td>0.91</td>
+            <td><b>0.91</b></td>
         </tr>
         <tr>
             <td >MultinomialNB</td>

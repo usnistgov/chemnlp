@@ -89,10 +89,15 @@ In the field of Natural Language Processing (NLP), analyzing and processing vast
 The dimosionality reduction technique we used in our project is: 
 TruncatedSVD: This transformer performs linear dimensionality reduction by means of truncated singular value decomposition (SVD). Contrary to PCA, this estimator does not center the data before computing the singular value decomposition. This means it can work with sparse matrices efficiently. And it works efficiently on count/tf-idf vactors.
 
-NB: The PCA didn't work because it does not support sparse input.
+**NB**: The PCA didn't work because it does not support sparse input.
 
 
 ### Classification Results:
+|                |          mAp@0.5      |       mAp@0.5-0.95   |           Precision      |          Recall         |         Box loss        |         Object loss      |     Inference Time (ms)  |
+|:-------------------|:---------------|:--------------|:-------------|:-----------|:------------------|:------------------|:-----------------------------|
+|         Yolov5s      |          39.4      |     0.15       |        0.754        |        0.382           |      0.120            |    0.266                  |        **7**            |                    
+|       YOLO-CROWD        |            **43.6**          |         **0.158**         |      **0.756**        |        **0.424**        |         **0.091**       |  **0.158**       |       10.1        | 
+
 
 
 

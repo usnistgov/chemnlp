@@ -174,9 +174,19 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
     </tbody>
 </table>
 
-
-
-
+### Text classification example
+#### SVC
+```
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm SVC
+```
+#### Feature Selection + RandomForestClassifier
+```
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm RandomForestClassifier --do_feature_selection True --feature_selection_algorithm chi2
+```
+#### Dimonsionality Reduction + KNN
+```
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm KNN --do_dimonsionality_reduction True --n_components 20
+```
 
 
 <a name="example"></a>
@@ -188,11 +198,7 @@ Examples
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
 
-#### Text classification example
 
-```
-python chemnlp/classification/scikit_class.py --csv_path chemnlp/sample_data/cond_mat_small.csv
-```
 
 [Google Colab example for installation and text classification](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
 

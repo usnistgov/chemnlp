@@ -1,15 +1,26 @@
 """Module for classification tasks."""
 import pandas as pd
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_classif
 import numpy as np
 from sklearn.cluster import DBSCAN
-
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.svm import LinearSVC
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from sklearn.metrics.cluster import adjusted_rand_score
-
+from sklearn.model_selection import train_test_split
 import argparse
-
+import xgboost as xgb
 from sklearn.metrics.cluster import normalized_mutual_info_score
 import sys
 from sklearn.decomposition import TruncatedSVD
@@ -31,8 +42,10 @@ import numpy as np
 from mclustpy import mclustpy
 # from sklearn.ensemble import GradientBoostingClassifier
 import seaborn as sns
+from jarvis.db.figshare import data
+from jarvis.db.jsonutils import dumpjson
 
-
+from sklearn.metrics import accuracy_score
 
 parser = argparse.ArgumentParser(description="ChemNLP package.")
 parser.add_argument(
@@ -208,7 +221,7 @@ def clustering(df=None, category_key="categories", text="title", filename=None,c
 
 
     if(clustering_algorithm == "KMeans"):
-        kmeans = KMeans(n_clusters=7, random_state=0, n_init="auto").fit(X_embedded)
+        kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(X_embedded)
         label= kmeans.labels_
         print(kmeans.labels_)
         #print("NMI:", normalized_mutual_info_score(kmeans.labels_,encoded_labels))
@@ -231,11 +244,14 @@ def clustering(df=None, category_key="categories", text="title", filename=None,c
     #Getting the Centroids
 
 
+    term_list = list(np.array(info).T[1])
+    term_set = list(set(term_list))
+    term_list = [term_set.index(term) for term in term_list]
     
     #plotting the results:
     
-    for i in u_labels:
-        plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label = i)
+    for i,k in zip(u_labels,term_list):
+        plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
     plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
     plt.legend()
     plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
@@ -259,7 +275,7 @@ if __name__ == "__main__":
 
 
 
-    df = pd.read_csv("cond_mat.csv")[0:1000]
-    clustering(df=df, filename="x.png",category_key='categories',text='title')
+    df = pd.read_csv("pubchem.csv")[0:1000]
+    clustering(df=df, filename="x.png",category_key='label_name',text='title')
     #df = pd.read_csv(csv_path)
     #scikit_classify(df=df, key="categories", value="title_abstract")

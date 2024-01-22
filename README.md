@@ -190,7 +190,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
 
 
 <a name="clustering"></a>
-Examples
+Clustering
 ---------
 #### abstract clustering
 

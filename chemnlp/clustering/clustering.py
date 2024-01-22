@@ -211,8 +211,8 @@ def clustering(df=None, category_key="categories", text="title", filename=None,c
         kmeans = KMeans(n_clusters=7, random_state=0, n_init="auto").fit(X_embedded)
         label= kmeans.labels_
         print(kmeans.labels_)
-        print("NMI:", normalized_mutual_info_score(kmeans.labels_,encoded_labels))
-        print("ARI:", adjusted_rand_score(kmeans.labels_,encoded_labels))
+        #print("NMI:", normalized_mutual_info_score(kmeans.labels_,encoded_labels))
+        #print("ARI:", adjusted_rand_score(kmeans.labels_,encoded_labels))
         centroids = kmeans.cluster_centers_
         u_labels = np.unique(label)
 
@@ -224,8 +224,8 @@ def clustering(df=None, category_key="categories", text="title", filename=None,c
         centroids = clustering.cluster_centers_
         u_labels = np.unique(label)
         
-        print("NMI:", normalized_mutual_info_score(clustering.labels_,encoded_labels))
-        print("ARI:", adjusted_rand_score(clustering.labels_,encoded_labels))
+        #print("NMI:", normalized_mutual_info_score(clustering.labels_,encoded_labels))
+        #print("ARI:", adjusted_rand_score(clustering.labels_,encoded_labels))
     
     #res = mclustpy(matrix, G=9, modelNames='EEE', random_seed=2020)
     #Getting the Centroids

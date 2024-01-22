@@ -1,26 +1,15 @@
 """Module for classification tasks."""
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_classif
+
 import numpy as np
 from sklearn.cluster import DBSCAN
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.svm import LinearSVC
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import confusion_matrix
+
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from sklearn.metrics.cluster import adjusted_rand_score
-from sklearn.model_selection import train_test_split
+
 import argparse
-import xgboost as xgb
+
 from sklearn.metrics.cluster import normalized_mutual_info_score
 import sys
 from sklearn.decomposition import TruncatedSVD
@@ -42,10 +31,8 @@ import numpy as np
 from mclustpy import mclustpy
 # from sklearn.ensemble import GradientBoostingClassifier
 import seaborn as sns
-from jarvis.db.figshare import data
-from jarvis.db.jsonutils import dumpjson
-import pickle
-from sklearn.metrics import accuracy_score
+
+
 
 parser = argparse.ArgumentParser(description="ChemNLP package.")
 parser.add_argument(
@@ -55,39 +42,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--classifiction_algorithm",
-    default="SVC",
+    "--clustering_algorithm",
+    default="KMeans",
 
 )
-parser.add_argument(
-    "--do_feature_selection",
-    default=False,
-)
-parser.add_argument(
-    "--feature_selection_algorithm",
-    default="chi2",
-)
-parser.add_argument(
-    "--do_dimonsionality_reduction",
-    default=False,
-)
-parser.add_argument(
-    "--k_best",
-    default=1500,
-)
-parser.add_argument(
-    "--n_components",
-    default=20,
-)
 
-
-
-
-parser.add_argument(
-    "--test_ratio",
-    default=0.2,
-    help="Test split ratio e.g. 0.2",
-)
 
 parser.add_argument(
     "--key_column",
@@ -99,17 +58,6 @@ parser.add_argument(
     "--value_column",
     default="title_abstract",
     help="Column name for text in csv file",
-)
-
-parser.add_argument(
-    "--min_df",
-    default=5,
-    help="Minimum numbers of documents a word must be present in to be kept",
-)
-parser.add_argument(
-    "--shuffle",
-    default=False,
-    help="Whether or not shuffle the rows in csv before splitting",
 )
 
 
@@ -201,7 +149,7 @@ def TSNE2D(X):
     return X_embedded
 
 
-def clustering(df=None, category_key="categories", text="title", filename=None, ndim=128):
+def clustering(df=None, category_key="categories", text="title", filename=None,clustering_algorithm="KMeans", ndim=128):
     print("Counting word stems in %d abstracts..." % len(df))
     samples = len(df)
     full_stem_df = pd.DataFrame()
@@ -249,7 +197,7 @@ def clustering(df=None, category_key="categories", text="title", filename=None, 
     label_encoder = LabelEncoder()
     label_encoder.fit(df[category_key])
     encoded_labels = label_encoder.transform(df[category_key])
-
+    print(encoded_labels)
     matrix = np.nan_to_num(matrix, nan=0.0)
     print('matrix',matrix )
     X = reduce_dim(matrix, ndim)
@@ -259,22 +207,40 @@ def clustering(df=None, category_key="categories", text="title", filename=None, 
     print('X_embedded',X_embedded )
 
 
-    kmeans = KMeans(n_clusters=7, random_state=0, n_init="auto").fit(X_embedded)
-    kmeans.labels_
-    print(kmeans.labels_)
-    print(encoded_labels)
-    
-    print("NMI:", normalized_mutual_info_score(kmeans.labels_,encoded_labels))
-    print("ARI:", adjusted_rand_score(kmeans.labels_,encoded_labels))
-    
-    clustering = DBSCAN(eps=3, min_samples=2).fit(X_embedded)
-    print(clustering.labels_)
-    
-    #print("NMI:", normalized_mutual_info_score(clustering.labels_,encoded_labels))
-    #print("ARI:", adjusted_rand_score(clustering.labels_,encoded_labels))
+    if(clustering_algorithm == "KMeans"):
+        kmeans = KMeans(n_clusters=7, random_state=0, n_init="auto").fit(X_embedded)
+        label= kmeans.labels_
+        print(kmeans.labels_)
+        print("NMI:", normalized_mutual_info_score(kmeans.labels_,encoded_labels))
+        print("ARI:", adjusted_rand_score(kmeans.labels_,encoded_labels))
+        centroids = kmeans.cluster_centers_
+        u_labels = np.unique(label)
+
+
+    elif (clustering_algorithm== "DBSCAN"):
+        clustering = DBSCAN(eps=3, min_samples=2).fit(X_embedded)
+        print(clustering.labels_)
+        label=clustering.labels_
+        centroids = clustering.cluster_centers_
+        u_labels = np.unique(label)
+        
+        print("NMI:", normalized_mutual_info_score(clustering.labels_,encoded_labels))
+        print("ARI:", adjusted_rand_score(clustering.labels_,encoded_labels))
     
     #res = mclustpy(matrix, G=9, modelNames='EEE', random_seed=2020)
+    #Getting the Centroids
+
+
     
+    #plotting the results:
+    
+    for i in u_labels:
+        plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label = i)
+    plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
+    plt.legend()
+    plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
+    plt.close()
+    plt.show()
 
 
 
@@ -286,17 +252,11 @@ if __name__ == "__main__":
     args = parser.parse_args(sys.argv[1:])
 
     csv_path = args.csv_path
-    classifiction_algorithm = args.classifiction_algorithm
-    do_feature_selection = args.do_feature_selection
-    feature_selection_algorithm = args.feature_selection_algorithm
-    k_best = int(args.k_best)
-    do_dimonsionality_reduction = args.do_dimonsionality_reduction
-    n_components = int(args.n_components)
-    test_ratio = float(args.test_ratio)
+    clustering_algorithm = args.clustering_algorithm
+
     key_column = args.key_column
     value_column = args.value_column
-    min_df = int(args.min_df)
-    shuffle = args.shuffle
+
 
 
     df = pd.read_csv("cond_mat.csv")[0:1000]

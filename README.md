@@ -189,6 +189,21 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
 ```
 
 
+<a name="clustering"></a>
+Examples
+---------
+#### abstract clustering
+
+```
+!python chemnlp/clustering/clustering.py --clustering_algorithm KMeans 
+```
+#### result:
+![Capture d'écran 2024-01-22 185442](https://github.com/usnistgov/chemnlp/assets/65148928/c4564941-cccd-4157-83f0-43620b93ff29)
+
+
+
+
+
 <a name="example"></a>
 Examples
 ---------

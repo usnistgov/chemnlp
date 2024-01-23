@@ -7,7 +7,7 @@
 # New Releases
 * Text classification using different algorithms
 * Feature selection
-* Dimosionality reduction
+* Dimesionality reduction
   
 # Table of Contents
 * [Introduction](#intro)
@@ -88,10 +88,10 @@ f_classif : Compute the ANOVA F-value between label/feature for classification t
 
 mutual_info_classif : Estimate mutual information for a discrete target variable
 
-### Dimosionality reduction in text classification:
+### Dimensionality reduction in text classification:
 In the field of Natural Language Processing (NLP), analyzing and processing vast amounts of text data can be challenging. Dimensionality reduction techniques come to our rescue by simplifying the data and extracting meaningful information.
 
-The dimosionality reduction technique we used in our project is: 
+The dimesionality reduction technique we used in our project is: 
 TruncatedSVD: This transformer performs linear dimensionality reduction by means of truncated singular value decomposition (SVD). Contrary to PCA, this estimator does not center the data before computing the singular value decomposition. This means it can work with sparse matrices efficiently. And it works efficiently on count/tf-idf vactors.
 
 **NB**: The PCA didn't work because it does not support sparse input.

@@ -215,7 +215,7 @@ run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 
 
 
-[Google Colab example ](https://github.com/zaki1003/Chemistry-NLP/blob/main/Chemistry_NLP_(MERABET).ipynb](https://github.com/zaki1003/Chemistry-NLP/blob/main/Chemistry_NLP_(MERABET).ipynb))
+[Google Colab example](https://github.com/zaki1003/Chemistry-NLP/blob/main/Chemistry_NLP_(MERABET).ipynb)
 
 
 

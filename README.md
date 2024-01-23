@@ -8,6 +8,8 @@
 * Text classification using different algorithms
 * Feature selection
 * Dimesionality reduction
+* Clustering
+* Words Prediction
   
 # Table of Contents
 * [Introduction](#intro)

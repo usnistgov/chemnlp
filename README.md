@@ -215,11 +215,8 @@ run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 
 
 
-[Google Colab example for installation and text classification](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
+[Google Colab example ]([https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb](https://github.com/zaki1003/Chemistry-NLP/blob/main/Chemistry_NLP_(MERABET).ipynb))
 
-#### Text generation example
-
-[Google Colab example for Text Generation with HuggingFace](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_TitleToAbstract.ipynb)
 
 
 <a name="webapp"></a>

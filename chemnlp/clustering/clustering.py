@@ -1,14 +1,15 @@
 """Module for classification tasks."""
 import pandas as pd
 
-
+import umap
 import numpy as np
 from sklearn.cluster import DBSCAN
-
-
+from sklearn.cluster import HDBSCAN
+from sklearn.metrics.cluster import adjusted_rand_score
+from sklearn.metrics.cluster import normalized_mutual_info_score
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
-
+from sklearn import metrics
 import argparse
 import xgboost as xgb
 
@@ -204,54 +205,179 @@ def clustering(df=None, category_key="categories", text="title", filename=None,c
     X = reduce_dim(matrix, ndim)
     print('X',X )
 
-    X_embedded = TSNE2D(X)
-    print('X_embedded',X_embedded )
-
-
-    if(clustering_algorithm == "KMeans"):
-        kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(X_embedded)
-        label= kmeans.labels_
-        print(kmeans.labels_)
-        #print("NMI:", normalized_mutual_info_score(kmeans.labels_,encoded_labels))
-        #print("ARI:", adjusted_rand_score(kmeans.labels_,encoded_labels))
-        centroids = kmeans.cluster_centers_
-        u_labels = np.unique(label)
-
-
-    elif (clustering_algorithm== "DBSCAN"):
-        clustering = DBSCAN(eps=3, min_samples=2).fit(X_embedded)
-        print(clustering.labels_)
-        label=clustering.labels_
-        centroids = clustering.cluster_centers_
-        u_labels = np.unique(label)
-
-    elif (clustering_algorithm== "Mixture"):
-        clustering = GaussianMixture(n_components=2, random_state=0).fit_predict(X_embedded)
-        print(clustering.labels)
-        label=clustering.labels
-        centroids = clustering.means_
-        u_labels = np.unique(label)
-        
-        #print("NMI:", normalized_mutual_info_score(clustering.labels_,encoded_labels))
-        #print("ARI:", adjusted_rand_score(clustering.labels_,encoded_labels))
-    
-    #res = mclustpy(matrix, G=9, modelNames='EEE', random_seed=2020)
-    #Getting the Centroids
-
 
     term_list = list(np.array(info).T[1])
     term_set = list(set(term_list))
     term_list = [term_set.index(term) for term in term_list]
+    print("-------------------",clustering_algorithm)
+
+
+    if(clustering_algorithm == "KMeans"):
+
+      kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(X)
+      label= kmeans.labels_
+      print("labels")
+      print(kmeans.labels_)
+      print("Normalized Mutual Information:", normalized_mutual_info_score(encoded_labels,kmeans.labels_))
+      print(f"Adjusted Rand Index: {metrics.adjusted_rand_score(encoded_labels, label):.3f}")
+      print(
+          "Adjusted Mutual Information:"
+          f" {metrics.adjusted_mutual_info_score(encoded_labels, label):.3f}"
+      )
+      print(f"Homogeneity: {metrics.homogeneity_score(encoded_labels, label):.3f}")
+      print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
+      print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
+
+      print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
+      X_embedded = TSNE2D(X)
+      print('X_embedded',X_embedded )
+      kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(X_embedded)
+      label= kmeans.labels_
+      print("labels")
+      print(kmeans.labels_)
+      centroids = kmeans.cluster_centers_
+      u_labels = np.unique(label)
+
+
     
-    #plotting the results:
+      #plotting the results:
+      
+      for i,k in zip(u_labels,term_list):
+          plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
+      plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
+      plt.legend()
+      plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
+      plt.close()
+      plt.show()
+
+
+    elif (clustering_algorithm== "Mixture"):
+        clustering = GaussianMixture(n_components=8, random_state=0).fit(X)
+        label=clustering.predict(X)
+        print("labels")
+        print(label)
+        centroids = clustering.means_
+        u_labels = np.unique(label)
+        
+        
+        print("Normalized Mutual Information:", normalized_mutual_info_score(encoded_labels,label))
+        print(f"Adjusted Rand Index: {metrics.adjusted_rand_score(encoded_labels, label):.3f}")
+        print(
+            "Adjusted Mutual Information:"
+            f" {metrics.adjusted_mutual_info_score(encoded_labels, label):.3f}"
+        )
+        print(f"Homogeneity: {metrics.homogeneity_score(encoded_labels, label):.3f}")
+        print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
+        print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
+
+        print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
     
-    for i,k in zip(u_labels,term_list):
-        plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
-    plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
-    plt.legend()
-    plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
-    plt.close()
-    plt.show()
+        X_embedded = TSNE2D(X)
+        print('X_embedded',X_embedded )
+        #plotting the results:
+        clustering = GaussianMixture(n_components=8, random_state=0).fit(X_embedded)
+        label=clustering.predict(X_embedded)
+
+        centroids = clustering.means_
+        u_labels = np.unique(label)
+
+        for i,k in zip(u_labels,term_list):
+            plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
+        plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
+        plt.legend()
+        plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
+        plt.close()
+        plt.show()
+
+
+    elif (clustering_algorithm== "HDBSCAN"):
+        reducer = umap.UMAP(n_components=20)
+        reducer.fit(X)
+        X_embedded=reducer.embedding_
+        hdb = HDBSCAN(min_cluster_size=20, min_samples=5)
+        hdb.fit(X_embedded)
+        label=hdb.labels_
+
+        #clustering = DBSCAN(eps=3, min_samples=2).fit(X)
+        #print("labels")
+        #print(clustering.labels_)
+        #label=clustering.labels_
+        
+        print("labels")
+        print(label)
+
+
+        print("Normalized Mutual Information:", normalized_mutual_info_score(encoded_labels,label))
+        print(f"Adjusted Rand Index: {metrics.adjusted_rand_score(encoded_labels, label):.3f}")
+        print(
+            "Adjusted Mutual Information:"
+            f" {metrics.adjusted_mutual_info_score(encoded_labels, label):.3f}"
+        )
+        print(f"Homogeneity: {metrics.homogeneity_score(encoded_labels, label):.3f}")
+        print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
+        print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
+
+        print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
+    
+        reducer = umap.UMAP(n_components=2)
+        reducer.fit(X)
+        X_embedded=reducer.embedding_
+        hdb.fit(X_embedded)
+        label=hdb.labels_
+        u_labels = np.unique(label)
+
+        for i,k in zip(u_labels,term_list):
+            plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
+        plt.legend()
+        plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
+        plt.close()
+        plt.show()
+
+    elif (clustering_algorithm== "DBSCAN"):
+        reducer = umap.UMAP(n_components=30)
+        reducer.fit(X)
+        X_embedded=reducer.embedding_
+
+
+        clustering = DBSCAN(min_samples=10).fit(X_embedded)
+        print("labels")
+        print(clustering.labels_)
+        label=clustering.labels_
+        
+
+        u_labels = np.unique(label)
+
+        print("Normalized Mutual Information:", normalized_mutual_info_score(encoded_labels,label))
+        print(f"Adjusted Rand Index: {metrics.adjusted_rand_score(encoded_labels, label):.3f}")
+        print(
+            "Adjusted Mutual Information:"
+            f" {metrics.adjusted_mutual_info_score(encoded_labels, label):.3f}"
+        )
+        print(f"Homogeneity: {metrics.homogeneity_score(encoded_labels, label):.3f}")
+        print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
+        print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
+
+        print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
+    
+
+        X_embedded = TSNE2D(X)
+        X_embedded=reducer.embedding_
+        clustering = DBSCAN( min_samples=10).fit(X_embedded)
+
+        label=clustering.labels_
+        u_labels = np.unique(label)
+
+        for i,k in zip(u_labels,term_list):
+            plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
+        plt.legend()
+        plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
+        plt.close()
+        plt.show()
+
+
+
+
+
 
 
 
@@ -271,6 +397,6 @@ if __name__ == "__main__":
 
 
     df = pd.read_csv("pubchem.csv")[0:1000]
-    clustering(df=df, filename="x.png",category_key='label_name',text='title')
+    clustering(df=df, filename="x.png",category_key='label_name',text='title',clustering_algorithm=clustering_algorithm)
     #df = pd.read_csv(csv_path)
     #scikit_classify(df=df, key="categories", value="title_abstract")

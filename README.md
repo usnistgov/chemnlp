@@ -68,7 +68,7 @@ cde data download
 <a name="classification"></a>
 Classification
 ---------
-For classification I tried 7 classification algorithms: SVC, MLPClassifier, RandomForestClassifier, Logistic, XGBoost, KNN, MultinomialNB. 
+For classification I tried 7 classification algorithms: SVM, MLPClassifier, RandomForestClassifier, Logistic, XGBoost, KNN, MultinomialNB. 
 
 ### Feature selection in text classification:
 Feature selection is one of the most important steps in the field of text classification. As text data mostly have high dimensionality problems. To reduce the curse of high dimensionality, feature selection techniques are used. The basic idea behind feature selection is to keep only important features and remove less contributing features.
@@ -118,7 +118,7 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
             <td>Trunced SVD</td>
         </tr>
         <tr>
-            <td >SVC</td>
+            <td >SVM</td>
             <td><b>0.94</b></td>
             <td> 0.90</td>
             <td> 0.90 </td>
@@ -177,9 +177,9 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
 </table>
 
 ### Text classification example
-#### SVC
+#### SVM
 ```
-!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm SVC
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm SVM
 ```
 #### Feature Selection + RandomForestClassifier
 ```

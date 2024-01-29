@@ -37,7 +37,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--classifiction_algorithm",
-    default="SVC",
+    default="SVM",
 
 )
 parser.add_argument(
@@ -107,7 +107,7 @@ def classify(
     categorize=True,  # False is buggy, need to check
     shuffle=False,
 
-    classifiction_algorithm = "SVC",
+    classifiction_algorithm = "SVM",
     do_feature_selection = False,
     feature_selection_algorithm = "chi2",
     do_dimonsionality_reduction = False,
@@ -226,15 +226,15 @@ def classify(
       X_test = feature_selector.transform(X_test)
 
 
-    if classifiction_algorithm == "SVC":
-        print("Training SVC:")
+    if classifiction_algorithm == "SVM":
+        print("Training SVM:")
         model = LinearSVC(verbose=True)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
-        f = open("accuracy_SVC", "w")
+        f = open("accuracy_SVM", "w")
         f.write(str(accuracy_score(y_test, y_pred)))
         f.close()
-        print("SVC", accuracy_score(y_test, y_pred))
+        print("SVM", accuracy_score(y_test, y_pred))
 
 
     elif classifiction_algorithm == "MLPClassifier":
@@ -461,11 +461,11 @@ def scikit_classify(
         shuffle=shuffle,
     )
 
-    print("Training SVC:")
+    print("Training SVM:")
     model = LinearSVC(verbose=True)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print("SVC", accuracy_score(y_test, y_pred))
+    print("SVM", accuracy_score(y_test, y_pred))
 
 
    # Perform chi-square feature selection

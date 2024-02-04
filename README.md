@@ -9,6 +9,7 @@
 * Feature selection
 * Dimesionality reduction
 * Clustering
+* AbbreviationDetector
 * Words Prediction
   
 # Table of Contents

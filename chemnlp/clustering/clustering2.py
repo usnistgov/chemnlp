@@ -1,25 +1,10 @@
 """Module for clustering tasks."""
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-import numpy as np
 
 import umap
-
-import matplotlib.pyplot as plt
-
-import argparse
-
-import sys
-from sklearn.decomposition import TruncatedSVD
-
-
-
-import pandas as pd
-
-
 import numpy as np
-
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import HDBSCAN
 from sklearn.metrics.cluster import adjusted_rand_score
 from sklearn.metrics.cluster import normalized_mutual_info_score
 from sklearn.cluster import KMeans
@@ -27,15 +12,17 @@ import matplotlib.pyplot as plt
 from sklearn import metrics
 import argparse
 
-
 import sys
 from sklearn.decomposition import TruncatedSVD
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 from sklearn.cluster import DBSCAN
-from sklearn.cluster import HDBSCAN
-
+from tqdm import tqdm
+from collections import Counter
 from sklearn.mixture import GaussianMixture
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.manifold import TSNE
@@ -43,6 +30,7 @@ from time import time
 
 import numpy as np
 
+# from sklearn.ensemble import GradientBoostingClassifier
 
 
 
@@ -60,19 +48,6 @@ parser.add_argument(
 
 )
 
-parser.add_argument(
-    "--n_clusters",
-    default=8,
-)
-
-
-
-
-parser.add_argument(
-    "--test_ratio",
-    default=0.2,
-    help="Test split ratio e.g. 0.2",
-)
 
 parser.add_argument(
     "--key_column",
@@ -82,16 +57,53 @@ parser.add_argument(
 
 parser.add_argument(
     "--value_column",
-    default="abstract",
+    default="title_abstract",
     help="Column name for text in csv file",
 )
 
-parser.add_argument(
-    "--min_df",
-    default=5,
-    help="Minimum numbers of documents a word must be present in to be kept",
-)
 
+
+def abstract2df(df=None, idx=None, text=""):
+    ps = PorterStemmer()
+    """
+    USAGE: Use Porter Stemming to process a paper abstract.
+
+    ARGUMENT:
+    df - DataFrame with keys ["term", "title", "summary", "id"]
+    idx - index locating paper within DataFrame
+
+    RETURNS: stem_df - DataFrame with keys ["stems", "counts", "docs"]
+    """
+    abstract = df.iloc[idx][text]
+    # abstract = df.iloc[idx].summary
+    words = word_tokenize(abstract)
+    stems = [ps.stem(w).lower() for w in words]
+    counts = Counter(stems)
+    docs = list(np.ones(len(counts)).astype(int))
+    stem_df = pd.DataFrame(
+        {
+            "stems": list(counts.keys()),
+            "counts": list(counts.values()),
+            "docs": docs,
+        }
+    )
+    stem_df = stem_df[["stems", "counts", "docs"]]
+    return stem_df
+
+
+def docs2idf(df, num):
+    """
+    USAGE:
+    Get an inverse document frequency (idf) measure for each stem,
+    and add that measure to the word stem DataFrame.
+
+    ARGUMENTS:
+    df - word stem DataFrame
+    num - total number of papers in document pool
+    """
+    df["idf"] = np.log(num / df["docs"])
+    # print ('df',df)
+    return df
 
 
 def reduce_dim(matrix, dims):
@@ -118,7 +130,6 @@ def reduce_dim(matrix, dims):
     return X
 
 
-
 def TSNE2D(X):
     """
     USAGE: Perform TSNE to reduce embedding space to 2D
@@ -138,73 +149,71 @@ def TSNE2D(X):
     )
     return X_embedded
 
-def clustering(
-    csv_path=None,
-    key="categories",
-    value="abstract",
-    test_size=0.2,
-    min_df=5,
-    ngram_range=(1,2),
-    print_common=False,
-    model=None,
-    categorize=True,  # False is buggy, need to check
-    shuffle=False,
-    clustering_algorithm = "SVM",
-    n_clusters=8,
-):
-    """Classifcy data using scikit-learn library algos."""
-    df = pd.read_csv(csv_path, dtype="str")
-    df = df[0:1000]
-    # df=pd.read_csv(csv_path,dtype={'id':'str'})
-    if categorize:
-        df["category_id"] = df[key].factorize()[0]
-        category_id_df = (
-            df[[key, "category_id"]].sort_values("category_id")
-            # df[[key, "category_id"]].drop_duplicates()
-            # .sort_values("category_id")
-        )
 
-        category_to_id = dict(category_id_df.values)
-        print("category_to_id", category_to_id)
-    print(df)
-    print(df[key].value_counts())
-    abstract_tfidf = TfidfVectorizer(
-        sublinear_tf=True,
-        # logarithmic form for frequency
-        min_df=min_df,
-        # minimum numbers of documents a word must be present in to be kept
-        norm="l2",
-        # norm is set to l2, to ensure all our feature
-        # vectors have a euclidian norm of 1
-        encoding="latin-1",  # utf-8 possible
-        ngram_range=ngram_range,
-        # (1, 2) to indicate that we want to consider both unigrams and bigrams
-        stop_words="english",
-        # remove common pronouns ("a", "the", ...)
-        # to reduce the number of noisy features
-    )
-    # Abstact features:
-    abstract_features = abstract_tfidf.fit_transform(
-        df[value]
-    )  # .toarray()  # abstract
-    if categorize:
-        encoded_labels = df.category_id  # categories (cond-mat)
-    else:
-        encoded_labels = df[key]  # categories (cond-mat)
-    # encoded_labels = df.category_id  # categories (cond-mat)
-    print(
-        "abstract_features.shape", abstract_features.shape
-    )  # abstracts represented by features,
-    # representing tf-idf score for different unigrams and bigrams
-   
- 
- 
+def clustering(df=None, category_key="categories", text="title", filename=None,clustering_algorithm="KMeans", ndim=128):
+    print("Counting word stems in %d abstracts..." % len(df))
+    samples = len(df)
+    full_stem_df = pd.DataFrame()
+    for idx in range(len(df)):
+        # print(idx)
+        stem_df = abstract2df(df=df, idx=idx, text=text)
+        full_stem_df = pd.concat([full_stem_df, stem_df])
+        if idx and idx % 10 == 0 or idx == len(df) - 1:
+            full_stem_df = full_stem_df.groupby("stems").sum()
+            full_stem_df["stems"] = full_stem_df.index
+            full_stem_df = full_stem_df[["stems", "counts", "docs"]]
+    full_stem_df.sort_values("counts", ascending=False, inplace=True)
+    all_stems = full_stem_df  # count_stems(dfb)
+    all_stems = docs2idf(all_stems, len(df))
+    all_stems.reset_index(drop=True, inplace=True)
+    # df=dfb
+    stems = all_stems
+    # assert samples <= len(df)
+    idf = np.array(list(stems["idf"]))
+    stems = stems[["stems", "idf"]]
+    matrix = np.zeros((samples, len(stems)))
+    
+
+    info = []
+    print("Embedding paper abstracts...")
+    i = 0
+    for idx in tqdm(range(samples)):
+        # print(idx)
+        information = list(df.iloc[idx][["id", category_key, text]])
+        info.append(information)
+        new_df = pd.merge(
+            stems,
+            abstract2df(df=df, idx=idx, text=text),
+            on="stems",
+            how="left",
+        ).fillna(0)
+        vec = np.array(list(new_df["counts"]))
+        vec /= np.sum(vec)  # components sum to 1
+        vec *= idf  # apply inverse document frequency
+        matrix[i, :] = vec
+        i += 1
+    print("Paper abstracts converted to vectors.")
+
+    # label encoding
+    label_encoder = LabelEncoder()
+    label_encoder.fit(df[category_key])
+    encoded_labels = label_encoder.transform(df[category_key])
+    print(encoded_labels)
+    matrix = np.nan_to_num(matrix, nan=0.0)
+    print('matrix',matrix )
+    X = reduce_dim(matrix, ndim)
+    print('X',X )
+
+
+    term_list = list(np.array(info).T[1])
+    term_set = list(set(term_list))
+    term_list = [term_set.index(term) for term in term_list]
     print("-------------------",clustering_algorithm)
 
 
     if(clustering_algorithm == "KMeans"):
 
-      kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(abstract_features)
+      kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(X)
       label= kmeans.labels_
       print("labels")
       print(kmeans.labels_)
@@ -218,8 +227,8 @@ def clustering(
       print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
       print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
 
-      print(f"Silhouette Coefficient: {metrics.silhouette_score(abstract_features, label):.3f}")
-      X_embedded = reduce_dim(abstract_features,2)
+      print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
+      X_embedded = TSNE2D(X)
       print('X_embedded',X_embedded )
       kmeans = KMeans(n_clusters=8, random_state=0, n_init="auto").fit(X_embedded)
       label= kmeans.labels_
@@ -232,7 +241,7 @@ def clustering(
     
       #plotting the results:
       
-      for i in u_labels:
+      for i,k in zip(u_labels,term_list):
           plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
       plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
       plt.legend()
@@ -242,9 +251,8 @@ def clustering(
 
 
     elif (clustering_algorithm== "Mixture"):
-        abstract_features = reduce_dim(abstract_features,128)
-        clustering = GaussianMixture(n_components=8, random_state=0).fit(abstract_features)
-        label=clustering.predict(abstract_features)
+        clustering = GaussianMixture(n_components=8, random_state=0).fit(X)
+        label=clustering.predict(X)
         print("labels")
         print(label)
         centroids = clustering.means_
@@ -261,9 +269,9 @@ def clustering(
         print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
         print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
 
-        print(f"Silhouette Coefficient: {metrics.silhouette_score(abstract_features, label):.3f}")
+        print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
     
-        X_embedded = reduce_dim(abstract_features,2)
+        X_embedded = TSNE2D(X)
         print('X_embedded',X_embedded )
         #plotting the results:
         clustering = GaussianMixture(n_components=8, random_state=0).fit(X_embedded)
@@ -272,7 +280,7 @@ def clustering(
         centroids = clustering.means_
         u_labels = np.unique(label)
 
-        for i in u_labels:
+        for i,k in zip(u_labels,term_list):
             plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
         plt.scatter(centroids[:,0] , centroids[:,1] , s = 80, color = 'k')
         plt.legend()
@@ -282,9 +290,8 @@ def clustering(
 
 
     elif (clustering_algorithm== "HDBSCAN"):
-        abstract_features = reduce_dim(abstract_features, 128)
         reducer = umap.UMAP(n_components=20)
-        reducer.fit(abstract_features)
+        reducer.fit(X)
         X_embedded=reducer.embedding_
         hdb = HDBSCAN(min_cluster_size=20, min_samples=5)
         hdb.fit(X_embedded)
@@ -309,16 +316,16 @@ def clustering(
         print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
         print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
 
-        print(f"Silhouette Coefficient: {metrics.silhouette_score(abstract_features, label):.3f}")
+        print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
     
         reducer = umap.UMAP(n_components=2)
-        reducer.fit(abstract_features)
+        reducer.fit(X)
         X_embedded=reducer.embedding_
         hdb.fit(X_embedded)
         label=hdb.labels_
         u_labels = np.unique(label)
 
-        for i in u_labels:
+        for i,k in zip(u_labels,term_list):
             plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
         plt.legend()
         plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
@@ -326,9 +333,8 @@ def clustering(
         plt.show()
 
     elif (clustering_algorithm== "DBSCAN"):
-        abstract_features = reduce_dim(abstract_features, 128)
         reducer = umap.UMAP(n_components=30)
-        reducer.fit(abstract_features)
+        reducer.fit(X)
         X_embedded=reducer.embedding_
 
 
@@ -350,17 +356,17 @@ def clustering(
         print(f"Completeness: {metrics.completeness_score(encoded_labels, label):.3f}")
         print(f"V-measure: {metrics.v_measure_score(encoded_labels, label):.3f}")
 
-        print(f"Silhouette Coefficient: {metrics.silhouette_score(abstract_features, label):.3f}")
+        print(f"Silhouette Coefficient: {metrics.silhouette_score(X, label):.3f}")
     
 
-        X_embedded = reduce_dim(abstract_features,2)
+        X_embedded = TSNE2D(X)
         X_embedded=reducer.embedding_
         clustering = DBSCAN( min_samples=10).fit(X_embedded)
 
         label=clustering.labels_
         u_labels = np.unique(label)
 
-        for i in u_labels:
+        for i,k in zip(u_labels,term_list):
             plt.scatter(X_embedded[label == i , 0] , X_embedded[label == i , 1] , label=i)
         plt.legend()
         plt.savefig("clustering_result_"+clustering_algorithm+".pdf")
@@ -370,34 +376,26 @@ def clustering(
 
 
 
+
+
+
+
+
 if __name__ == "__main__":
     # python generate_data.py
     # generate_data()
-    # clustering(csv_path='cond_mat.csv')
+    # classify(csv_path='cond_mat.csv')
     args = parser.parse_args(sys.argv[1:])
 
     csv_path = args.csv_path
     clustering_algorithm = args.clustering_algorithm
 
-    n_clusters = int(args.n_clusters)
-    test_ratio = float(args.test_ratio)
     key_column = args.key_column
     value_column = args.value_column
-    min_df = int(args.min_df)
 
 
-    clustering(
-        csv_path=csv_path,
-        test_size=test_ratio,
-        key=key_column,
-        value=value_column,
-        min_df=min_df,
-        clustering_algorithm = clustering_algorithm,
 
-     
-        n_clusters=n_clusters,
-    )
+    df = pd.read_csv("pubchem.csv")[0:1000]
+    clustering(df=df, filename="x.png",category_key='label_name',text='title',clustering_algorithm=clustering_algorithm)
     #df = pd.read_csv(csv_path)
-    #scikit_clustering(df=df, key="categories", value="abstract_abstract")
-
-
+    #scikit_classify(df=df, key="categories", value="title_abstract")

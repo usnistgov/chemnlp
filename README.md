@@ -4,18 +4,22 @@
 
 # Chemistry-NLP
 
-# New Releases
+# New Features
 * Text classification using different algorithms
 * Feature selection
 * Dimesionality reduction
 * Clustering
-* AbbreviationDetector
+* Abbreviation Detection
 * Words Prediction
   
 # Table of Contents
 * [Introduction](#intro)
 * [Installation](#install)
-* [Examples](#example)
+* [Classification](#classification)
+* [Clustering](#clustering)
+* [Abbreviation Detection](#abbreviationDetection)
+* [Words Prediction](#wordsprediction)
+* [Parse Chemical Formula](#parseChemicalFormula)
 * [Web-app](#webapp)
 * [Reference](#reference)
 
@@ -195,23 +199,65 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
 <a name="clustering"></a>
 Clustering
 ---------
+In chemNLP they used t-distributed stochastic neighbor embedding (t-SNE) for clustering analysis, which is a statistical method for visualizing high-dimensional data in a twoor three-dimensional map and doesn’t perform clustering. So, I suggested adding some clustering algorithms to the library like: K-means, Gaussian mixture, DBSCAN, HDBSCAN.
+
 #### abstract clustering
 
+##### K-means
 ```
-!python chemnlp/clustering/clustering.py --clustering_algorithm KMeans 
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm KMeans
 ```
 #### result:
 ![Capture d'écran 2024-01-22 185442](https://github.com/usnistgov/chemnlp/assets/65148928/c4564941-cccd-4157-83f0-43620b93ff29)
 
+##### Gaussian mixture
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm Mixture
+```
 
 
+##### DBSCAN
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm DBSCAN
+```
+
+##### HDBSCAN
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm HDBSCAN
+```
 
 
-<a name="example"></a>
-Examples
+<a name="abbreviationDetection"></a>
+Abbreviation Detection
 ---------
-#### Parse chemical formula 
+The AbbreviationDetector is a Spacy component which implements the abbreviation detection algorithm in "A simple algorithm for identifying abbreviation definitions in biomedical text.", (Schwartz & Hearst, 2003).
+#### Exemple: 
+```
+!python chemnlp/abbreviation_detector/abbreviation_detector.py --text "Spinal and bulbar muscular atrophy (SBMA) is an inherited motor neuron disease caused by the expansion of a polyglutamine tract within the androgen receptor (AR). SBMA can be caused by this easily."
+```
 
+![exemple_abbreviation_detection](https://github.com/usnistgov/chemnlp/assets/65148928/88a00c48-c631-4448-b43e-27876cced8c5)
+
+
+
+<a name="wordsprediction"></a>
+Words Prediction
+---------
+For words prediction I used chemical-bert-uncase model. A BERT-based language model is pre-trained from the checkpoint of SciBERT. 
+#### Exemple: 
+
+![exemple_chemical_bert_application](https://github.com/usnistgov/chemnlp/assets/65148928/df1deec4-721e-47e7-90c1-58e5c6ca0f6a)
+
+
+
+
+
+
+
+
+<a name="parseChemicalFormula"></a>
+Parse Chemical Formula 
+---------
 ```
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```

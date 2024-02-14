@@ -99,7 +99,7 @@ mutual_info_classif : Estimate mutual information for a discrete target variable
 In the field of Natural Language Processing (NLP), analyzing and processing vast amounts of text data can be challenging. Dimensionality reduction techniques come to our rescue by simplifying the data and extracting meaningful information.
 
 The dimesionality reduction technique we used in our project is: 
-TruncatedSVD: This transformer performs linear dimensionality reduction by means of truncated singular value decomposition (SVD). Contrary to PCA, this estimator does not center the data before computing the singular value decomposition. This means it can work with sparse matrices efficiently. And it works efficiently on count/tf-idf vactors.
+TruncatedSVD: This transformer performs linear dimensionality reduction by means of truncated singular value decomposition (SVD). Contrary to PCA, this estimator does not center the data before computing the singular value decomposition. This means it can work with sparse matrices efficiently. And it works efficiently on count/tf-idf vectors.
 
 **NB**: The PCA didn't work because it does not support sparse input.
 

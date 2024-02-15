@@ -34,6 +34,36 @@ parser.add_argument(
     default="filename.csv",
     help="Path for comma separated file.",
 )
+
+parser.add_argument(
+    "--classifiction_algorithm",
+    default="SVM",
+
+)
+parser.add_argument(
+    "--do_feature_selection",
+    default=False,
+)
+parser.add_argument(
+    "--feature_selection_algorithm",
+    default="chi2",
+)
+parser.add_argument(
+    "--do_dimonsionality_reduction",
+    default=False,
+)
+parser.add_argument(
+    "--k_best",
+    default=1500,
+)
+parser.add_argument(
+    "--n_components",
+    default=20,
+)
+
+
+
+
 parser.add_argument(
     "--test_ratio",
     default=0.2,
@@ -65,7 +95,7 @@ parser.add_argument(
 
 
 
-def sk_class(
+def classify(
     csv_path=None,
     key="categories",
     value="title_abstract",
@@ -76,6 +106,13 @@ def sk_class(
     model=None,
     categorize=True,  # False is buggy, need to check
     shuffle=False,
+
+    classifiction_algorithm = "SVM",
+    do_feature_selection = False,
+    feature_selection_algorithm = "chi2",
+    do_dimonsionality_reduction = False,
+    k_best=1500,
+    n_components=20,
 ):
     """Classifcy data using scikit-learn library algos."""
     df = pd.read_csv(csv_path, dtype="str")
@@ -120,8 +157,13 @@ def sk_class(
         "title_features.shape", title_features.shape
     )  # titles represented by features,
     # representing tf-idf score for different unigrams and bigrams
-    if model is None:
-        model = LogisticRegression(random_state=0)  # LinearSVC()
+   
+
+    if(do_dimonsionality_reduction):
+        svd = TruncatedSVD(n_components=n_components, random_state=42)
+        title_features = svd.fit_transform(title_features)     
+
+
     (
         X_train,
         X_test,
@@ -164,120 +206,141 @@ def sk_class(
     # print('indices_test',df.id[indices_test].astype(str),len(indices_test))
     #print("Logistic model accuracy", accuracy_score(y_test, y_pred))
 
-    #svd = TruncatedSVD(n_components=15, random_state=42)
-    #title_features = svd.fit_transform(title_features)     
 
 
 
 
-   # print("Training SVC:")
-   # model = LinearSVC(verbose=True)
-   # model.fit(X_train, y_train)
-   # y_pred = model.predict(X_test)
-    #print("SVC", accuracy_score(y_test, y_pred))
+
+    # Perform  feature selection
+    if(do_feature_selection):
+      if(feature_selection_algorithm=="chi2"):
+        feature_selector = SelectKBest(chi2, k=k_best)
+
+      elif (feature_selection_algorithm=="f_classif"):
+        feature_selector = SelectKBest(f_classif, k=k_best)
+
+      elif(feature_selection_algorithm=="mutual_info_classif"):
+        feature_selector = SelectKBest(mutual_info_classif, k=k_best)
+      
+      X_train = feature_selector.fit_transform(X_train, y_train)
+      X_test = feature_selector.transform(X_test)
 
 
-   # Perform chi-square feature selection
-    k_best = 2000  # Number of features to select
+    if classifiction_algorithm == "SVM":
+        print("Training SVM:")
+        model = LinearSVC(verbose=True)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        f = open("accuracy_SVM", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("SVM", accuracy_score(y_test, y_pred))
+
+
+    elif classifiction_algorithm == "MLPClassifier":
+        print("Training MLPClassifier:")
+        # MLPClassifier()
+        model = MLPClassifier(solver='adam',activation='relu', alpha=1e-2, hidden_layer_sizes=(17), random_state=1,learning_rate='adaptive')
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        f = open("accuracy_MLPClassifier", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("MLPClassifier", accuracy_score(y_test, y_pred))
+        
+        
+    elif classifiction_algorithm == "KNN":
+        print("Training KNN:")
+        model = KNeighborsClassifier(n_neighbors=1)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        f = open("accuracy_KNN", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("KNN", accuracy_score(y_test, y_pred))
+
+
+    elif classifiction_algorithm == "RandomForestClassifier":
+        print("Training RandomForestClassifier:")
+        # RandomForestClassifier()
+        model = RandomForestClassifier()
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        f = open("accuracy_RandomForestClassifier", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("RandomForestClassifier", accuracy_score(y_test, y_pred))
+
+
+
+    elif classifiction_algorithm == "XGBoost":
+        print("Training XGBoost:")
+        # XGBoost()
+        xgb.set_config(verbosity=2)     
+        xgb_model = xgb.XGBClassifier(objective="multi:softprob", random_state=42)
+        xgb_model.fit(X_train, y_train)
+        y_pred = xgb_model.predict(X_test)
+        f = open("accuracy_XGBoost", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("XGBoost", accuracy_score(y_test, y_pred))
+
+
+
+    elif classifiction_algorithm == "LogisticRegression":
+        print("Training logistic regression:")
+        # LogisticRegression()
+        model = LogisticRegression(random_state=0,verbose=1)  
     
-    #chi2_selector = SelectKBest(chi2, k=k_best)
-    #chi2_selector = SelectKBest(mutual_info_classif, k=k_best)
-    #chi2_selector = SelectKBest(f_classif, k=k_best)
-    #X_train = chi2_selector.fit_transform(X_train, y_train)
-    #X_test = chi2_selector.transform(X_test)
-
- 
-    print("Training MLPClassifier:")
-    # MLPClassifier()
-
-    model = MLPClassifier(solver='adam',activation='relu', alpha=1e-2, hidden_layer_sizes=(17), random_state=1,learning_rate='adaptive')
-
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_MLPClassifier", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("MLPClassifier", accuracy_score(y_test, y_pred))
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        f = open("accuracy_logistic", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("Logistic", accuracy_score(y_test, y_pred))
 
 
 
 
-
-    print("Training MLPClassifier2:")
-    # MLPClassifier()
-
-    model = MLPClassifier(hidden_layer_sizes=(150,100,50),
-                        max_iter = 300,activation = 'relu',
-                        solver = 'adam')
-
-    model.fit(trainX_scaled, y_train)
-
-    y_pred = model.predict(X_test)
-    f = open("accuracy_MLPClassifier2", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("MLPClassifier2", accuracy_score(y_test, y_pred))
+    elif classifiction_algorithm == "MultinomialNB":
+        print("Training MultinomialNB:")
+        # MultinomialNB()
+        model = MultinomialNB()
+        model.fit(abs(X_train), y_train)
+        y_pred = model.predict(abs(X_test))
+        f = open("accuracy_MultinomialNB", "w")
+        f.write(str(accuracy_score(y_test, y_pred)))
+        f.close()
+        print("MultinomialNB", accuracy_score(y_test, y_pred))
 
 
-    print("Training KNN:")
    
-    #chi2_selector = SelectKBest(chi2, k=k_best)
-    #chi2_selector = SelectKBest(mutual_info_classif, k=k_best)
-    chi2_selector = SelectKBest(f_classif, k=k_best)
-    X_train_knn = chi2_selector.fit_transform(X_train, y_train)
-    X_test_knn = chi2_selector.transform(X_test)
 
- 
+        
 
-    model = KNeighborsClassifier(n_neighbors=3)
-    model.fit(X_train_knn, y_train)
-    y_pred = model.predict(X_test_knn)
-    f = open("accuracy_KNN", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("KNN", accuracy_score(y_test, y_pred))
-
-
-
-
-
-
-
-    print("Training RandomForestClassifier:")
-    # RandomForestClassifier()
-
-    model = RandomForestClassifier()
-
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-
-    print("RandomForestClassifier", accuracy_score(y_test, y_pred))
-
-
-    print("Training XGBoost:")
-    # XGBoost()
-
-    xgb.set_config(verbosity=2)     
-    xgb_model = xgb.XGBClassifier(objective="multi:softprob", random_state=42)
-    xgb_model.fit(X_train, y_train)
-
-    y_pred = xgb_model.predict(X_test)
-
-    print("XGBoost", accuracy_score(y_test, y_pred))
-
-
-
-
-    print("Training logistic regression:")
-    # LinearSVC()
-    model = LogisticRegression(random_state=0,verbose=1)  
-  
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_logistic", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("Logistic", accuracy_score(y_test, y_pred))
+    
+    plt.rcParams.update({"font.size": 20})
+    conf_mat = confusion_matrix(y_test, y_pred)  # ,labels=category_to_id)
+    fig, ax = plt.subplots(figsize=(16, 16))
+    # print('category_id_df[key].values',category_id_df[key].values)
+    sns.heatmap(
+        conf_mat / conf_mat.sum(axis=1)[:, np.newaxis],
+        annot=True,
+        # fmt="d",
+        fmt=".1%",
+        cbar=False,
+        square=True,
+        cmap=sns.diverging_palette(20, 220, n=200),
+        # xticklabels=category_id_df[k].values,
+        # yticklabels=category_id_df[k].values,
+        xticklabels=category_to_id,
+        yticklabels=category_to_id,
+    )
+    plt.ylabel("Actual")
+    plt.xlabel("Predicted")
+    plt.tight_layout()
+    plt.savefig("conf_"+classifiction_algorithm+".pdf")
+    plt.close()
 
 
 
@@ -286,18 +349,22 @@ def sk_class(
 
 
 
-    print("Training MultiNomial:")
-    # GradientBoostingClassifier()
-    model = MultinomialNB()
-
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_MultinomialNB", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
 
 
-    print("MultinomialNB", accuracy_score(y_test, y_pred))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -394,11 +461,11 @@ def scikit_classify(
         shuffle=shuffle,
     )
 
-    print("Training SVC:")
+    print("Training SVM:")
     model = LinearSVC(verbose=True)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print("SVC", accuracy_score(y_test, y_pred))
+    print("SVM", accuracy_score(y_test, y_pred))
 
 
    # Perform chi-square feature selection
@@ -424,84 +491,39 @@ def scikit_classify(
 
 
 
-    print("Training MLPClassifier:")
-    # MLPClassifier()
-
-    model = MLPClassifier(solver='adam',activation='relu', alpha=1e-2, hidden_layer_sizes=(5, 2), random_state=1)
-
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_MLPClassifier", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("MLPClassifier", accuracy_score(y_test, y_pred))
-
-
-
-    print("Training logistic regression:")
-    # LinearSVC()
-    model = LogisticRegression(random_state=0,verbose=1)  
-  
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_logistic", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("Logistic", accuracy_score(y_test, y_pred))
-
-
-    print("Training KNN:")
-   
-
-    model = KNeighborsClassifier(n_neighbors=3)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_KNN", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-    print("KNN", accuracy_score(y_test, y_pred))
-
-
-
-
-
-
-
-    print("Training MultiNomial:")
-    # GradientBoostingClassifier()
-    model = MultinomialNB()
-
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    f = open("accuracy_MultinomialNB", "w")
-    f.write(str(accuracy_score(y_test, y_pred)))
-    f.close()
-
-
-    print("MultinomialNB", accuracy_score(y_test, y_pred))
-
-
-
 
 if __name__ == "__main__":
     # python generate_data.py
     # generate_data()
-    # sk_class(csv_path='cond_mat.csv')
+    # classify(csv_path='cond_mat.csv')
     args = parser.parse_args(sys.argv[1:])
+
     csv_path = args.csv_path
+    classifiction_algorithm = args.classifiction_algorithm
+    do_feature_selection = args.do_feature_selection
+    feature_selection_algorithm = args.feature_selection_algorithm
+    k_best = int(args.k_best)
+    do_dimonsionality_reduction = args.do_dimonsionality_reduction
+    n_components = int(args.n_components)
     test_ratio = float(args.test_ratio)
     key_column = args.key_column
     value_column = args.value_column
     min_df = int(args.min_df)
     shuffle = args.shuffle
 
-    sk_class(
+    classify(
         csv_path=csv_path,
         test_size=test_ratio,
         key=key_column,
         value=value_column,
         min_df=min_df,
         shuffle=shuffle,
+        classifiction_algorithm = classifiction_algorithm,
+        do_feature_selection = do_feature_selection,
+        feature_selection_algorithm = feature_selection_algorithm,
+        k_best=k_best, # Number of features to select
+        do_dimonsionality_reduction = do_dimonsionality_reduction,
+        n_components=n_components,
     )
     #df = pd.read_csv(csv_path)
     #scikit_classify(df=df, key="categories", value="title_abstract")

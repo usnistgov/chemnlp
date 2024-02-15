@@ -1,24 +1,35 @@
-[![name](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
+[![name](https://colab.research.google.com/assets/colab-badge.svg)]([[https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb]](https://colab.research.google.com/drive/1FRayOxp07ReOUUrL7ZXkPTmF1Ocu5ygI?usp=sharing))
 ![alt text](https://github.com/usnistgov/chemnlp/actions/workflows/main.yml/badge.svg)
 [![DOI](https://zenodo.org/badge/523320947.svg)](https://zenodo.org/badge/latestdoi/523320947)
 
+# Chemistry-NLP
 
-# ChemNLP
-
+# New Features
+* Text classification using different algorithms
+* Feature selection
+* Dimesionality reduction
+* Clustering
+* Abbreviation Detection
+* Words Prediction
+  
 # Table of Contents
 * [Introduction](#intro)
 * [Installation](#install)
-* [Examples](#example)
+* [Classification](#classification)
+* [Clustering](#clustering)
+* [Abbreviation Detection](#abbreviationDetection)
+* [Words Prediction](#wordsprediction)
+* [Parse Chemical Formula](#parseChemicalFormula)
 * [Web-app](#webapp)
 * [Reference](#reference)
 
 <a name="intro"></a>
 Introduction
 -------------------------
-ChemNLP is a software-package to process chemical information from the scientific literature.
+Chemistry-NLP is a software-package to process chemical information from the scientific literature.
 
 <p align="center">
-   <img src="https://github.com/usnistgov/chemnlp/blob/develop/chemnlp/Schemcatic.PNG" alt="ChemNLP"  width="600"/>
+   <img src="https://github.com/zaki1003/Chemistry-NLP/blob/develop/chemnlp/Schemcatic.PNG" alt="ChemNLP"  width="600"/>
 </p>
 
 <a name="install"></a>
@@ -35,49 +46,226 @@ bash Miniconda3-latest-Linux-x86_64.sh (for linux)
 bash Miniconda3-latest-MacOSX-x86_64.sh (for Mac)
 ```
 Download 32/64 bit python 3.8 miniconda exe and install (for windows)
-Now, let's make a conda environment, say "chemnlp", choose other name as you like::
+Now, let's make a conda environment, say "Chemistry-NLP", choose other name as you like::
 ```
-conda create --name chemnlp python=3.9
-source activate chemnlp
+conda create --name Chemistry-NLP python=3.9
+source activate Chemistry-NLP
 ```
 #### Method 1 (using setup.py):
 
 Now, let's install the package:
 ```
-git clone https://github.com/usnistgov/chemnlp.git
-cd chemnlp
+git clone https://github.com/zaki1003/Chemistry-NLP.git
+cd Chemistry-NLP
 python setup.py develop
 cde data download
 ```
 
 #### Method 2 (using pypi):
 
-As an alternate method, ChemNLP can also be installed using `pip` command as follows:
+As an alternate method, Chemistry-NLP can also be installed using `pip` command as follows:
 ```
 pip install chemnlp
 cde data download
 ```
 
-<a name="example"></a>
-Examples
----------
-#### Parse chemical formula 
 
+<a name="classification"></a>
+Classification
+---------
+For classification I tried 7 classification algorithms: SVM, MLPClassifier, RandomForestClassifier, Logistic, XGBoost, KNN, MultinomialNB. 
+
+### Feature selection in text classification:
+Feature selection is one of the most important steps in the field of text classification. As text data mostly have high dimensionality problems. To reduce the curse of high dimensionality, feature selection techniques are used. The basic idea behind feature selection is to keep only important features and remove less contributing features.
+
+Issues associated with high dimensionality are as follows:
+
+1. Adds unnecessary noise to the model
+
+2. High space and time complexity
+
+3. Overfitting
+
+
+The feature selection techniques we used in our project are: 
+
+the Chi-Square feature selection: The Chi-square test is used in statistics to test the independence of two events. More specifically in feature selection, we use it to test whether the occurrence of a specific term and the occurrence of a specific class are independent.
+
+f_classif : Compute the ANOVA F-value between label/feature for classification tasks.
+
+mutual_info_classif : Estimate mutual information for a discrete target variable
+
+### Dimensionality reduction in text classification:
+In the field of Natural Language Processing (NLP), analyzing and processing vast amounts of text data can be challenging. Dimensionality reduction techniques come to our rescue by simplifying the data and extracting meaningful information.
+
+The dimesionality reduction technique we used in our project is: 
+TruncatedSVD: This transformer performs linear dimensionality reduction by means of truncated singular value decomposition (SVD). Contrary to PCA, this estimator does not center the data before computing the singular value decomposition. This means it can work with sparse matrices efficiently. And it works efficiently on count/tf-idf vectors.
+
+**NB**: The PCA didn't work because it does not support sparse input.
+
+### Classification Results:
+<table>
+    <thead>
+        <tr>
+            <th rowspan=2></th>
+            <th rowspan=2>original data</th>
+            <th colspan=3>Feature Selection with k_best=1500</th>
+            <th>Dimonsionality Reduction with n_component=20</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td ></td>
+            <td></td>
+            <td>chi-square</td>
+            <td>  mutual_info_classif</td>
+            <td>f_classif</td>
+            <td>Trunced SVD</td>
+        </tr>
+        <tr>
+            <td >SVM</td>
+            <td><b>0.94</b></td>
+            <td> 0.90</td>
+            <td> 0.90 </td>
+            <td>0.90 </td>
+            <td> 0.81 </td>
+        </tr>
+        <tr>
+            <td >MLPClassifier</td>
+            <td> <b>0.94</b></td>
+            <td> 0.87 </td>
+            <td>  0.87 </td>
+            <td> 0.866 </td>
+            <td> 0.84</td>
+        </tr>
+        <tr>
+            <td >RandomForestClassifier</td>
+            <td><b>0.94</b>  </td>
+            <td> <b> 0.93 </b></td>
+            <td>   <b> 0.94 </b> </td>
+            <td> <b>0.93</b> </td>
+            <td> 0.93  </td>
+        </tr>
+        <tr>
+            <td >Logistic regression </td>
+            <td> <b>0.92</b></td>
+            <td>0.88</td>
+            <td> 0.89 </td>
+            <td> 0.88 </td>
+            <td> 0.80 </td>
+        </tr>
+        <tr>
+            <td >XGBoost</td>
+            <td> <b>0.91</b></td>
+            <td> <b>0.90</b> </td>
+            <td> <b>0.90</b> </td>
+            <td><b>0.90</b></td>
+            <td>0.93</td>
+        </tr>
+        <tr>
+            <td >KNN</td>
+            <td> 0.53</td>
+            <td> 0.84 </td>
+            <td> 0.82 </td>
+            <td>0.84</td>
+            <td><b>0.91 (here KNN is the fastest)</b></td>
+        </tr>
+        <tr>
+            <td >MultinomialNB</td>
+            <td> <b>0.89</b></td>
+            <td> 0.85 </td>
+            <td> 0.86 </td>
+            <td>0.85</td>
+            <td> 0.53 (doesn't support negative values)</td>
+        </tr>
+    </tbody>
+</table>
+
+### Text classification example
+#### SVM
+```
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --classifiction_algorithm SVM
+```
+#### Feature Selection + RandomForestClassifier
+```
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --classifiction_algorithm RandomForestClassifier --do_feature_selection True --feature_selection_algorithm chi2
+```
+#### Dimonsionality Reduction + KNN
+```
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --classifiction_algorithm KNN --do_dimonsionality_reduction True --n_components 20
+```
+
+
+<a name="clustering"></a>
+Clustering
+---------
+In chemNLP they used t-distributed stochastic neighbor embedding (t-SNE) for clustering analysis, which is a statistical method for visualizing high-dimensional data in a twoor three-dimensional map and doesn’t perform clustering. So, I suggested adding some clustering algorithms to the library like: K-means, Gaussian mixture, DBSCAN, HDBSCAN.
+
+#### abstract clustering
+
+##### K-means
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm KMeans
+```
+#### result:
+![Capture d'écran 2024-01-22 185442](https://github.com/usnistgov/chemnlp/assets/65148928/c4564941-cccd-4157-83f0-43620b93ff29)
+
+##### Gaussian mixture
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm Mixture
+```
+
+
+##### DBSCAN
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm DBSCAN
+```
+
+##### HDBSCAN
+```
+!python chemnlp/clustering/clustering.py --csv_path pubchem.csv --key_column label_name --value_column abstract  --clustering_algorithm HDBSCAN
+```
+
+
+<a name="abbreviationDetection"></a>
+Abbreviation Detection
+---------
+The AbbreviationDetector is a Spacy component which implements the abbreviation detection algorithm in "A simple algorithm for identifying abbreviation definitions in biomedical text.", (Schwartz & Hearst, 2003).
+#### Exemple: 
+```
+!python chemnlp/abbreviation_detector/abbreviation_detector.py --text "Spinal and bulbar muscular atrophy (SBMA) is an inherited motor neuron disease caused by the expansion of a polyglutamine tract within the androgen receptor (AR). SBMA can be caused by this easily."
+```
+
+![exemple_abbreviation_detection](https://github.com/usnistgov/chemnlp/assets/65148928/88a00c48-c631-4448-b43e-27876cced8c5)
+
+
+
+<a name="wordsprediction"></a>
+Words Prediction
+---------
+For words prediction I used chemical-bert-uncase model. A BERT-based language model is pre-trained from the checkpoint of SciBERT. 
+#### Exemple: 
+
+![exemple_chemical_bert_application](https://github.com/usnistgov/chemnlp/assets/65148928/df1deec4-721e-47e7-90c1-58e5c6ca0f6a)
+
+
+
+
+
+
+
+
+<a name="parseChemicalFormula"></a>
+Parse Chemical Formula 
+---------
 ```
 run_chemnlp.py --file_path="chemnlp/tests/XYZ"
 ```
 
-#### Text classification example
 
-```
-python chemnlp/classification/scikit_class.py --csv_path chemnlp/sample_data/cond_mat_small.csv
-```
 
-[Google Colab example for installation and text classification](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_Example.ipynb)
+[Google Colab example](https://github.com/zaki1003/Chemistry-NLP/blob/main/Chemistry_NLP_(MERABET).ipynb)
 
-#### Text generation example
-
-[Google Colab example for Text Generation with HuggingFace](https://colab.research.google.com/github/knc6/jarvis-tools-notebooks/blob/master/jarvis-tools-notebooks/ChemNLP_TitleToAbstract.ipynb)
 
 
 <a name="webapp"></a>

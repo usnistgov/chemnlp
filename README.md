@@ -184,15 +184,15 @@ TruncatedSVD: This transformer performs linear dimensionality reduction by means
 ### Text classification example
 #### SVM
 ```
-!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm SVM
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --classifiction_algorithm SVM
 ```
 #### Feature Selection + RandomForestClassifier
 ```
-!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm RandomForestClassifier --do_feature_selection True --feature_selection_algorithm chi2
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --classifiction_algorithm RandomForestClassifier --do_feature_selection True --feature_selection_algorithm chi2
 ```
 #### Dimonsionality Reduction + KNN
 ```
-!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --value_column title --classifiction_algorithm KNN --do_dimonsionality_reduction True --n_components 20
+!python chemnlp/classification/classification.py --csv_path pubchem.csv --key_column label_name --value_column title --classifiction_algorithm KNN --do_dimonsionality_reduction True --n_components 20
 ```
 
 

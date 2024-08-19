@@ -91,5 +91,9 @@ The webapp is available at: https://jarvis.nist.gov/jarvischemnlp
 Reference
 ---------
 
+1. [ChemNLP: A Natural Language Processing based Library for Materials Chemistry Text Data](https://github.com/usnistgov/chemnlp)
+2. [AtomGPT: Atomistic Generative Pretrained Transformer for Forward and Inverse Materials Design](https://pubs.acs.org/doi/full/10.1021/acs.jpclett.4c01126)
+3. [JARVIS-Leaderboard](https://pages.nist.gov/jarvis_leaderboard)
+4. [NIST-JARVIS Infrastructure](https://jarvis.nist.gov/)
 
-[ChemNLP: A Natural Language Processing based Library for Materials Chemistry Text Data](https://arxiv.org/abs/2209.08203)
+
